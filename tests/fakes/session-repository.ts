@@ -4,12 +4,16 @@ import type {
   NewSession,
   SessionRecord,
   SessionRepository,
+  TeacherSummary,
 } from '../../src/sessions/session.repository.js';
 
 const FIXED_DATE = new Date('2026-10-20T10:00:00.000Z');
 
 // In-memory stand-in for sessionRepository: same contract, no database.
-export function createFakeSessionRepository(): SessionRepository & { all(): SessionRecord[] } {
+// `teachers` plays the part of the teachers collection for the $lookup-style joins.
+export function createFakeSessionRepository(
+  teachers: TeacherSummary[] = [],
+): SessionRepository & { all(): SessionRecord[] } {
   const sessions: SessionRecord[] = [];
 
   return {
@@ -31,6 +35,21 @@ export function createFakeSessionRepository(): SessionRepository & { all(): Sess
       };
       sessions.push(session);
       return session;
+    },
+    async findAvailable({ dayStart, dayEnd, now }) {
+      return sessions
+        .filter(
+          (s) =>
+            s.status === SessionStatus.AVAILABLE &&
+            s.startTime >= dayStart &&
+            s.startTime < dayEnd &&
+            s.startTime > now,
+        )
+        .sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
+        .flatMap((s) => {
+          const teacher = teachers.find((t) => t._id.equals(s.teacherId));
+          return teacher ? [{ ...s, teacher }] : []; // like $unwind dropping unmatched rows
+        });
     },
     all: () => sessions,
   };

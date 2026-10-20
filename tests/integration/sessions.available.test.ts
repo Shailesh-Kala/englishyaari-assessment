@@ -1,6 +1,6 @@
 import request from 'supertest';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { Session } from '../../src/sessions/session.model.js';
+import { Session, SessionStatus } from '../../src/sessions/session.model.js';
 import { Teacher } from '../../src/teachers/teacher.model.js';
 import { testApp } from '../setup/test-app.js';
 import { useTestDb } from '../setup/test-db.js';
@@ -23,7 +23,11 @@ describe('GET /sessions/available', () => {
     teacher = { _id: doc.id, fullName: doc.fullName, specialization: doc.specialization };
   });
 
-  const insert = (startLocal: string, endLocal: string, status = 'AVAILABLE') =>
+  const insert = (
+    startLocal: string,
+    endLocal: string,
+    status: SessionStatus = SessionStatus.AVAILABLE,
+  ) =>
     Session.create({
       teacherId: teacher._id,
       startTime: ist(startLocal),
@@ -58,8 +62,8 @@ describe('GET /sessions/available', () => {
 
   it('excludes booked and completed sessions and other days', async () => {
     const wanted = await insert('2026-10-21T10:00', '2026-10-21T11:00');
-    await insert('2026-10-21T12:00', '2026-10-21T13:00', 'BOOKED');
-    await insert('2026-10-21T14:00', '2026-10-21T15:00', 'COMPLETED');
+    await insert('2026-10-21T12:00', '2026-10-21T13:00', SessionStatus.BOOKED);
+    await insert('2026-10-21T14:00', '2026-10-21T15:00', SessionStatus.COMPLETED);
     await insert('2026-10-22T10:00', '2026-10-22T11:00');
     await insert('2026-10-20T20:00', '2026-10-20T21:00');
 
