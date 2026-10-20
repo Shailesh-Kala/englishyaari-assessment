@@ -94,6 +94,8 @@ Test scripts chain `userId` and `sessionId` between requests. Each run uses a fr
 
 ## API
 
+Full request/response bodies: [API examples](#api-examples).
+
 | Method & path | Body / query | Success | Errors |
 |---|---|---|---|
 | `POST /users` | `{ fullName, email, phone }` | `201` user | `400`, `409` email taken |
@@ -138,6 +140,315 @@ Validation errors add `details: [{ path, message }]`, one per bad field. The `re
 | `PAYLOAD_TOO_LARGE` | 413 |
 | `RATE_LIMITED` | 429 |
 | `INTERNAL_ERROR` | 500 |
+
+## API examples
+
+Real requests and responses from a local run against the Docker MongoDB (ids and timestamps will differ on your machine). Times are UTC; `2026-10-22T08:10:00.000Z` is 13:40 IST.
+
+<details>
+<summary><code>POST /users</code> — create a user</summary>
+
+Request:
+
+```bash
+curl -s -X POST 'localhost:3000/users' \
+  -H 'content-type: application/json' \
+  -d '{"fullName": "Asha Rao", "email": "Asha.Local@Example.com", "phone": "+91 98765 43210"}'
+```
+
+Response `201` (email lowercased, phone normalised):
+
+```json
+{
+  "fullName": "Asha Rao",
+  "email": "asha.local@example.com",
+  "phone": "+919876543210",
+  "_id": "6ad722046b6b1e7bf9799d99",
+  "createdAt": "2026-10-20T08:10:44.682Z",
+  "updatedAt": "2026-10-20T08:10:44.682Z"
+}
+```
+
+Same email again, in any letter case → `409`:
+
+```json
+{
+  "error": {
+    "code": "EMAIL_ALREADY_EXISTS",
+    "message": "A user with this email already exists",
+    "requestId": "a1485fbc-4bbe-4be9-95e5-91aed10a3720"
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><code>POST /sessions</code> — create a session</summary>
+
+Request:
+
+```bash
+curl -s -X POST 'localhost:3000/sessions' \
+  -H 'content-type: application/json' \
+  -d '{"teacherId": "6ad72202c32570bebe83005f", "startTime": "2026-10-22T08:10:00.000Z", "endTime": "2026-10-22T09:10:00.000Z"}'
+```
+
+Response `201`:
+
+```json
+{
+  "teacherId": "6ad72202c32570bebe83005f",
+  "userId": null,
+  "startTime": "2026-10-22T08:10:00.000Z",
+  "endTime": "2026-10-22T09:10:00.000Z",
+  "status": "AVAILABLE",
+  "completedAt": null,
+  "_id": "6ad722046b6b1e7bf9799d9a",
+  "createdAt": "2026-10-20T08:10:44.722Z",
+  "updatedAt": "2026-10-20T08:10:44.722Z"
+}
+```
+
+A slot for the same teacher from 08:40 to 09:40 UTC (overlaps) → `409`:
+
+```json
+{
+  "error": {
+    "code": "SESSION_OVERLAP",
+    "message": "Teacher already has a session that overlaps this time",
+    "requestId": "8a954ce7-813d-4fa9-9880-6ac9a0d0117c"
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><code>GET /sessions/available</code> — available sessions for a date</summary>
+
+Request:
+
+```bash
+curl -s 'localhost:3000/sessions/available?dateTimestamp=1792656600000'
+```
+
+Response `200` (first of 3 items shown, sorted by `startTime`):
+
+```json
+[
+  {
+    "_id": "6ad722046b6b1e7bf9799d9a",
+    "teacherId": "6ad72202c32570bebe83005f",
+    "userId": null,
+    "startTime": "2026-10-22T08:10:00.000Z",
+    "endTime": "2026-10-22T09:10:00.000Z",
+    "status": "AVAILABLE",
+    "completedAt": null,
+    "createdAt": "2026-10-20T08:10:44.722Z",
+    "updatedAt": "2026-10-20T08:10:44.722Z",
+    "teacher": {
+      "_id": "6ad72202c32570bebe83005f",
+      "fullName": "Priya Sharma",
+      "specialization": "Spoken English"
+    }
+  }
+]
+```
+
+`?dateTimestamp=tomorrow` → `400`:
+
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Request validation failed",
+    "details": [
+      {
+        "path": "dateTimestamp",
+        "message": "dateTimestamp must be epoch milliseconds"
+      }
+    ],
+    "requestId": "22fb6bd8-308a-4f83-bcaf-57695fbe2595"
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><code>POST /sessions/:id/book</code> — book a session</summary>
+
+Request:
+
+```bash
+curl -s -X POST 'localhost:3000/sessions/6ad722046b6b1e7bf9799d9a/book' \
+  -H 'content-type: application/json' \
+  -d '{"userId": "6ad722046b6b1e7bf9799d99"}'
+```
+
+Response `200`:
+
+```json
+{
+  "_id": "6ad722046b6b1e7bf9799d9a",
+  "teacherId": "6ad72202c32570bebe83005f",
+  "userId": "6ad722046b6b1e7bf9799d99",
+  "startTime": "2026-10-22T08:10:00.000Z",
+  "endTime": "2026-10-22T09:10:00.000Z",
+  "status": "BOOKED",
+  "completedAt": null,
+  "createdAt": "2026-10-20T08:10:44.722Z",
+  "updatedAt": "2026-10-20T08:10:44.769Z"
+}
+```
+
+Booking the same session again → `409`:
+
+```json
+{
+  "error": {
+    "code": "SESSION_NOT_AVAILABLE",
+    "message": "Session is not available for booking",
+    "requestId": "876d9def-bdb3-4fe4-9584-05019829baaf"
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><code>GET /users/:id/sessions</code> — a user's sessions (after booking)</summary>
+
+Request:
+
+```bash
+curl -s 'localhost:3000/users/6ad722046b6b1e7bf9799d99/sessions'
+```
+
+Response `200`:
+
+```json
+{
+  "upcoming": [
+    {
+      "_id": "6ad722046b6b1e7bf9799d9a",
+      "teacherId": "6ad72202c32570bebe83005f",
+      "userId": "6ad722046b6b1e7bf9799d99",
+      "startTime": "2026-10-22T08:10:00.000Z",
+      "endTime": "2026-10-22T09:10:00.000Z",
+      "status": "BOOKED",
+      "completedAt": null,
+      "createdAt": "2026-10-20T08:10:44.722Z",
+      "updatedAt": "2026-10-20T08:10:44.769Z",
+      "teacher": {
+        "_id": "6ad72202c32570bebe83005f",
+        "fullName": "Priya Sharma",
+        "specialization": "Spoken English"
+      }
+    }
+  ],
+  "completed": []
+}
+```
+
+</details>
+
+<details>
+<summary><code>PATCH /sessions/:id/complete</code> — mark a session complete</summary>
+
+Request:
+
+```bash
+curl -s -X PATCH 'localhost:3000/sessions/6ad722046b6b1e7bf9799d9a/complete'
+```
+
+Response `200`:
+
+```json
+{
+  "_id": "6ad722046b6b1e7bf9799d9a",
+  "teacherId": "6ad72202c32570bebe83005f",
+  "userId": "6ad722046b6b1e7bf9799d99",
+  "startTime": "2026-10-22T08:10:00.000Z",
+  "endTime": "2026-10-22T09:10:00.000Z",
+  "status": "COMPLETED",
+  "completedAt": "2026-10-20T08:10:44.788Z",
+  "createdAt": "2026-10-20T08:10:44.722Z",
+  "updatedAt": "2026-10-20T08:10:44.789Z"
+}
+```
+
+Completing it again → `409`:
+
+```json
+{
+  "error": {
+    "code": "SESSION_NOT_BOOKED",
+    "message": "Only booked sessions can be completed",
+    "requestId": "2205c1a7-8471-45cf-8f4b-e7309b3ea86e"
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><code>GET /users/:id/sessions</code> — a user's sessions (after completing)</summary>
+
+Request:
+
+```bash
+curl -s 'localhost:3000/users/6ad722046b6b1e7bf9799d99/sessions'
+```
+
+Response `200` (the session moved from `upcoming` to `completed`):
+
+```json
+{
+  "upcoming": [],
+  "completed": [
+    {
+      "_id": "6ad722046b6b1e7bf9799d9a",
+      "teacherId": "6ad72202c32570bebe83005f",
+      "userId": "6ad722046b6b1e7bf9799d99",
+      "startTime": "2026-10-22T08:10:00.000Z",
+      "endTime": "2026-10-22T09:10:00.000Z",
+      "status": "COMPLETED",
+      "completedAt": "2026-10-20T08:10:44.788Z",
+      "createdAt": "2026-10-20T08:10:44.722Z",
+      "updatedAt": "2026-10-20T08:10:44.789Z",
+      "teacher": {
+        "_id": "6ad72202c32570bebe83005f",
+        "fullName": "Priya Sharma",
+        "specialization": "Spoken English"
+      }
+    }
+  ]
+}
+```
+
+</details>
+
+<details>
+<summary><code>GET /health</code> — health check</summary>
+
+Request:
+
+```bash
+curl -s 'localhost:3000/health'
+```
+
+Response `200`:
+
+```json
+{
+  "status": "ok",
+  "db": "up"
+}
+```
+
+</details>
 
 ## Configuration
 
