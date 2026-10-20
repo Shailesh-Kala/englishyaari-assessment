@@ -290,3 +290,14 @@ Start with Phase 0 now.
 > next
 
 **Response:** TDD: unit tests via fakes (split + 404) and integration tests (ordering of both lists incl. a started BOOKED session, exclusion of AVAILABLE/other users, empty lists, 404, 400). Then `findForUser` aggregation (`$match` → teacher `$lookup` → `$facet`), service `listForUser`, route; moved `idParamsSchema` to `validation.ts`. `explain` confirms index scan.
+
+---
+
+## 23. Phase 3 — Task 14 follow-up (ObjectId parsing, route placement)
+
+**Prompt:**
+> fix these: *(quoted the two Task 14 notes: manual ObjectId conversion in the F6 pipeline; F6 route living in the sessions module)*
+
+**Clarified via questions:** convert ids at validation; move the route into the users module.
+
+**Response:** TDD: `objectIdSchema` test, then refactor threading `Types.ObjectId` through schemas, services, repositories, fakes and unit tests (pipeline no longer converts by hand). Second refactor moved `GET /users/:id/sessions` into `user.routes.ts`. Logged D-028, D-029; synced ARCHITECTURE.

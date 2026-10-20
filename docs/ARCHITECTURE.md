@@ -119,7 +119,7 @@ Indexes are declared on the schemas. `server.ts` awaits `createIndexes()` for ev
 
 ## 3. API endpoints
 
-All bodies are JSON. Ids are 24-char hex ObjectIds; anything else is a `400`. Times in bodies accept ISO-8601 or epoch ms; responses return ISO-8601 (UTC).
+All bodies are JSON. Ids are 24-char hex ObjectIds; anything else is a `400`. Valid ids are parsed into `Types.ObjectId` at validation, so services, repositories and pipelines never handle id strings (D-028). Times in bodies accept ISO-8601 or epoch ms; responses return ISO-8601 (UTC).
 
 | # | Method & path | Body / query | Success | Errors |
 |---|---|---|---|---|
@@ -209,12 +209,12 @@ One round trip returns both lists (D-009: `upcoming` = every `BOOKED`).
 │   ├── errors.ts               # AppError, error handler, 404 handler
 │   ├── request-logger.ts       # pino-http + request id (incoming x-request-id or UUID)
 │   ├── health.routes.ts
-│   ├── validation.ts           # shared zod pieces (ObjectId, `:id` params)
+│   ├── validation.ts           # shared zod pieces: ObjectId (string → Types.ObjectId), `:id` params
 │   ├── users/
 │   │   ├── user.model.ts
 │   │   ├── user.repository.ts
 │   │   ├── user.service.ts
-│   │   ├── user.routes.ts      # routes + thin controllers (D-015)
+│   │   ├── user.routes.ts      # every /users route incl. /users/:id/sessions (D-015, D-029)
 │   │   └── user.schemas.ts     # zod request schemas
 │   ├── teachers/
 │   │   ├── teacher.model.ts
@@ -224,7 +224,7 @@ One round trip returns both lists (D-009: `upcoming` = every `BOOKED`).
 │   │   ├── session.model.ts
 │   │   ├── session.repository.ts   # pipelines, transaction, atomic updates
 │   │   ├── session.service.ts      # create / available / book / complete / listForUser
-│   │   ├── session.routes.ts       # /sessions/* and /users/:id/sessions
+│   │   ├── session.routes.ts       # /sessions/*
 │   │   ├── session.schemas.ts
 │   │   └── ist-day.ts              # pure: timestamp → IST day range
 │   └── scripts/

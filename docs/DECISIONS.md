@@ -212,3 +212,19 @@ Format: **What** · **Alternatives** · **Why** · **Trade-off**
 - **Why:** Owner's choice — the product's users are in India (see D-004). Normalising means one stored format however the user typed it.
 - **Trade-off:** Users with non-Indian numbers can't sign up.
 - **Status:** Approved by owner.
+
+## D-028 — Parse ids into `ObjectId` at the validation boundary
+
+- **What:** `objectIdSchema` validates the 24-char hex string and transforms it into `Types.ObjectId`. Every service and repository signature takes `Types.ObjectId`, not `string`.
+- **Alternatives:** Keep string ids and convert inside each aggregation (`new Types.ObjectId(id)`); a `toObjectId()` helper in repositories.
+- **Why:** Owner's choice. Mongoose casts strings for `find()` but not for `aggregate()`, where a string silently matches nothing. With ids parsed once at the edge, TypeScript rejects a plain string anywhere it could reach a pipeline.
+- **Trade-off:** Services and fakes depend on Mongoose's `Types.ObjectId` type (not on models or queries).
+- **Status:** Approved by owner.
+
+## D-029 — Group routes by URL; logic stays with its domain
+
+- **What:** `GET /users/:id/sessions` lives in `user.routes.ts` with `POST /users`; its handler calls `sessionService.listForUser`. `userRoutes(userService, sessionService)`.
+- **Alternatives:** Route in `session.routes.ts` (where the logic is); move logic into `userService` too.
+- **Why:** Owner's choice — anyone looking for a `/users` endpoint finds them all in one file, while session rules stay in the session service.
+- **Trade-off:** The users routes module depends on the session service.
+- **Status:** Approved by owner.
