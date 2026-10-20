@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { AppError } from '../../src/errors.js';
+import { User } from '../../src/users/user.model.js';
 import { createUserService } from '../../src/users/user.service.js';
 
 const input = { fullName: 'Asha Rao', email: 'asha@example.com', phone: '+919876543210' };
 
 describe('userService.create', () => {
   it('returns the created user', async () => {
-    const created = { _id: 'u1', ...input };
+    const created = new User(input).toObject(); // unsaved document — no DB needed
     const service = createUserService({ userRepo: { create: async () => created } });
 
     await expect(service.create(input)).resolves.toBe(created);

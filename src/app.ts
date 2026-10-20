@@ -6,6 +6,9 @@ import type { Logger } from 'pino';
 import { AppError, errorHandler, notFoundHandler } from './errors.js';
 import { healthRoutes } from './health.routes.js';
 import { requestLogger } from './request-logger.js';
+import { userRepository } from './users/user.repository.js';
+import { userRoutes } from './users/user.routes.js';
+import { createUserService } from './users/user.service.js';
 
 export type AppOptions = {
   logger: Logger;
@@ -30,6 +33,7 @@ export function createApp({ logger, corsOrigins, rateLimit: limits }: AppOptions
   );
   app.use(express.json({ limit: '10kb' }));
   app.use(healthRoutes);
+  app.use(userRoutes(createUserService({ userRepo: userRepository })));
   app.use(notFoundHandler);
   app.use(errorHandler);
   return app;
