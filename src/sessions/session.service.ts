@@ -68,6 +68,14 @@ export function createSessionService({ sessionRepo, teacherRepo, userRepo, clock
       return completed;
     },
 
+    // Upcoming = every BOOKED session, started or not, until it is completed (D-009).
+    async listForUser(userId: string) {
+      if (!(await userRepo.exists(userId))) {
+        throw new AppError(404, 'USER_NOT_FOUND', 'User not found');
+      }
+      return sessionRepo.findForUser(userId);
+    },
+
     async listAvailable(dateTimestamp: number) {
       const { start, end } = istDayRange(dateTimestamp);
       return sessionRepo.findAvailable({ dayStart: start, dayEnd: end, now: clock() });

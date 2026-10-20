@@ -1,4 +1,4 @@
-import mongoose, { type Types } from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { Teacher } from '../teachers/teacher.model.js';
 import { Session, SessionStatus, type SessionDoc } from './session.model.js';
 import type { CreateSessionInput } from './session.schemas.js';
@@ -25,7 +25,11 @@ export type SessionRepository = {
   completeIfBooked(completion: { sessionId: string; now: Date }): Promise<SessionRecord | null>;
   /** AVAILABLE sessions starting in [dayStart, dayEnd) and strictly after `now`, by startTime. */
   findAvailable(range: { dayStart: Date; dayEnd: Date; now: Date }): Promise<SessionWithTeacher[]>;
+  /** The user's BOOKED sessions (by startTime asc) and COMPLETED ones (by completedAt desc). */
+  findForUser(userId: string): Promise<UserSessions>;
 };
+
+export type UserSessions = { upcoming: SessionWithTeacher[]; completed: SessionWithTeacher[] };
 
 const joinTeacher = [
   {
@@ -94,5 +98,27 @@ export const sessionRepository: SessionRepository = {
       { $sort: { startTime: 1 } },
       ...joinTeacher,
     ]);
+  },
+
+  async findForUser(userId) {
+    const [result] = await Session.aggregate<UserSessions>([
+      {
+        $match: {
+          userId: new Types.ObjectId(userId), // aggregate() doesn't cast like find() does
+          status: { $in: [SessionStatus.BOOKED, SessionStatus.COMPLETED] },
+        },
+      },
+      ...joinTeacher,
+      {
+        $facet: {
+          upcoming: [{ $match: { status: SessionStatus.BOOKED } }, { $sort: { startTime: 1 } }],
+          completed: [
+            { $match: { status: SessionStatus.COMPLETED } },
+            { $sort: { completedAt: -1 } },
+          ],
+        },
+      },
+    ]);
+    return result!; // $facet always emits exactly one document
   },
 };

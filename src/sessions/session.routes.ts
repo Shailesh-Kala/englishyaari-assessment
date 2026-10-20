@@ -1,10 +1,10 @@
 import { Router } from 'express';
+import { idParamsSchema } from '../validation.js';
 import type { SessionService } from './session.service.js';
 import {
   availableSessionsQuerySchema,
   bookSessionSchema,
   createSessionSchema,
-  sessionIdParamsSchema,
 } from './session.schemas.js';
 
 export function sessionRoutes(sessionService: SessionService) {
@@ -18,12 +18,16 @@ export function sessionRoutes(sessionService: SessionService) {
       res.json(await sessionService.listAvailable(dateTimestamp));
     })
     .post('/sessions/:id/book', async (req, res) => {
-      const { id } = sessionIdParamsSchema.parse(req.params);
+      const { id } = idParamsSchema.parse(req.params);
       const { userId } = bookSessionSchema.parse(req.body);
       res.json(await sessionService.book(id, userId));
     })
     .patch('/sessions/:id/complete', async (req, res) => {
-      const { id } = sessionIdParamsSchema.parse(req.params);
+      const { id } = idParamsSchema.parse(req.params);
       res.json(await sessionService.complete(id));
+    })
+    .get('/users/:id/sessions', async (req, res) => {
+      const { id } = idParamsSchema.parse(req.params);
+      res.json(await sessionService.listForUser(id));
     });
 }
