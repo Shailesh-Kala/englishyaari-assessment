@@ -142,3 +142,12 @@ Start with Phase 0 now.
 > Next
 
 **Response:** Wrote `docs/ARCHITECTURE.md` (diagrams, data model + indexes, endpoints + error codes, both aggregation pipelines, folder structure, security/performance/reliability trade-offs) and `docs/PLAN.md` (16 tasks with their test cases). Logged D-011 to D-019.
+
+---
+
+## 7. Phase 3 — Task 1 (Tooling scaffold)
+
+**Prompt:**
+> next
+
+**Response:** Added package.json (ESM, Node ≥ 22), strict tsconfig, ESLint flat config + Prettier, Vitest config. Lint, typecheck, format check and test all pass. Logged D-020 (ESM).

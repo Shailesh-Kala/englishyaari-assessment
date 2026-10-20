@@ -150,3 +150,10 @@ Format: **What** · **Alternatives** · **Why** · **Trade-off**
 - **Alternatives:** `$dateToString` / `$dateTrunc` with `timezone: 'Asia/Kolkata'` inside the pipeline.
 - **Why:** A plain range on `startTime` uses the `{ status, startTime }` index; computing a date per document can't. IST has a fixed offset, so the function is trivial and fully unit-testable.
 - **Trade-off:** Timezone logic sits in TypeScript rather than in the pipeline.
+
+## D-020 — Native ES modules
+
+- **What:** `"type": "module"`; TypeScript `module: NodeNext`, so relative imports carry `.js` extensions.
+- **Alternatives:** CommonJS output (extensionless imports).
+- **Why:** Vite/Vitest warn that ESM config inside a CommonJS package is going away; ESM is the current Node default and every dependency we use supports it.
+- **Trade-off:** `.js` extensions in TypeScript imports look odd at first.

@@ -6,7 +6,7 @@ Each task is 1–3 commits: `test:` (failing) → `feat:` (pass) → `refactor:`
 
 ## Foundation
 
-- [ ] **1. Tooling scaffold** — `package.json`, TypeScript (strict), ESLint + Prettier, Vitest config, npm scripts (`dev`, `build`, `start`, `lint`, `format`, `typecheck`, `test`, `seed`).
+- [x] **1. Tooling scaffold** — `package.json`, TypeScript (strict), ESLint + Prettier, Vitest config, npm scripts (`lint`, `format`, `format:check`, `typecheck`, `test`; `dev`, `build`, `start`, `seed` are added with the files they run). Native ESM (D-020).
   Commits: `chore: scaffold TypeScript project with lint, format and test tooling`
 
 - [ ] **2. CI** — GitHub Actions on every push: `npm ci` → lint → typecheck → test, with the mongod binary cached.
