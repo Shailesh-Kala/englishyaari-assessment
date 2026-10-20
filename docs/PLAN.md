@@ -75,10 +75,11 @@ Each task is 1–3 commits: `test:` (failing) → `feat:` (pass) → `refactor:`
   - int: booking again / completed → `409 SESSION_NOT_AVAILABLE`; started → `409 SESSION_ALREADY_STARTED`; unknown user/session → `404`; malformed ids / missing userId → `400`
   - int: **concurrency** — five users book one session via `Promise.all` → exactly one `200`, stored `userId` = winner (mutation-checked: fails without the conditional filter)
 
-- [ ] **13. F5 — Complete session** `PATCH /sessions/:id/complete`
-  - unit: missing `404`; `AVAILABLE` or `COMPLETED` → `409 SESSION_NOT_BOOKED`
+- [x] **13. F5 — Complete session** `PATCH /sessions/:id/complete`
+  - unit: missing `404`; `AVAILABLE` or `COMPLETED` → `409 SESSION_NOT_BOOKED`; lost race → `409`
   - int: booked → `200`, `status COMPLETED`, `completedAt` = fixed clock time
-  - int: invalid id → `400`
+  - int: invalid id → `400`; unknown → `404`
+  - int: **concurrency** — five simultaneous completes → exactly one `200` (mutation-checked)
 
 - [ ] **14. F6 — User sessions** `GET /users/:id/sessions` (aggregation)
   - int: `{ upcoming, completed }`; upcoming = all `BOOKED` (incl. started) sorted by `startTime` asc; completed sorted by `completedAt` desc; both with `teacher`

@@ -272,3 +272,12 @@ Start with Phase 0 now.
 > next
 
 **Response:** TDD: unit tests for rule order (user → session → status → started → lost race) with extended fakes; integration tests for 200, re-book/completed/started 409s, 404s, 400s, and 5 simultaneous bookings. Then `userRepo.exists`, `findById`, `bookIfAvailable` (conditional `findOneAndUpdate`), service `book` and route. Mutation check: dropping the conditional filter fails the race test 3/3; restored 10/10.
+
+---
+
+## 21. Phase 3 — Task 13 (F5 — Complete session)
+
+**Prompt:**
+> next
+
+**Response:** TDD: unit tests (completed with `completedAt = now`, 404, AVAILABLE/COMPLETED → 409, lost race) and integration tests (200, 409s, 404, 400, 5 simultaneous completes). Then `completeIfBooked` conditional update, service `complete`, `PATCH` route. Mutation check: dropping the `status: BOOKED` filter fails the race test 3/3; restored 10/10.
