@@ -133,3 +133,12 @@ Start with Phase 0 now.
 **Clarified via questions:** keep started BOOKED sessions in `upcoming`; hide started AVAILABLE sessions and block booking them.
 
 **Response:** Updated F3/F4/F6 and assumptions in REQUIREMENTS.md; logged D-009 (supersedes D-005) and D-010. Overlap guard (D-008) already covered point 2.
+
+---
+
+## 6. Phase 2 (Design)
+
+**Prompt:**
+> Next
+
+**Response:** Wrote `docs/ARCHITECTURE.md` (diagrams, data model + indexes, endpoints + error codes, both aggregation pipelines, folder structure, security/performance/reliability trade-offs) and `docs/PLAN.md` (16 tasks with their test cases). Logged D-011 to D-019.
