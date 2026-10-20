@@ -236,3 +236,12 @@ Start with Phase 0 now.
 > next
 
 **Response:** TDD: unit tests for midday, IST midnight (inclusive), last ms of the day, a UTC/IST date mismatch, and the exclusive end; then `istDayRange(ts)` with a fixed +05:30 offset.
+
+---
+
+## 17. Phase 3 — Task 9 (F2 — Create session, basic)
+
+**Prompt:**
+> next
+
+**Response:** TDD: in-memory teacher/session fakes and service tests (404 teacher, AVAILABLE default), integration tests for 201 shape, epoch-ms input, ignored client fields, `endTime <= startTime`, invalid ids/times, unknown teacher. Then zod schema (ISO or epoch ms), `teacherRepository.exists`, `sessionRepository.create`, service and route.

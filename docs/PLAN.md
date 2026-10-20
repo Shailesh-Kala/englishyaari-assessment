@@ -51,10 +51,10 @@ Each task is 1–3 commits: `test:` (failing) → `feat:` (pass) → `refactor:`
   - unit: mid-day, just after IST midnight, just before IST midnight, UTC-date ≠ IST-date edge (e.g. `2026-10-20T20:00Z` → IST 21 Oct)
   - unit: end is exclusive — next IST midnight belongs to the next day
 
-- [ ] **9. F2 — Create session (basic)** `POST /sessions`
-  - unit: teacher missing → `404 TEACHER_NOT_FOUND`
-  - int: valid → `201`, `status AVAILABLE`, `userId null`, `completedAt null`
-  - int: `endTime <= startTime` → `400`; invalid `teacherId` → `400`; client-sent `status` is ignored
+- [x] **9. F2 — Create session (basic)** `POST /sessions`
+  - unit (in-memory fakes): teacher missing → `404 TEACHER_NOT_FOUND`, nothing stored; teacher exists → `AVAILABLE` session
+  - int: valid → `201`, `status AVAILABLE`, `userId null`, `completedAt null`; epoch-ms times accepted
+  - int: `endTime <= startTime` → `400`; invalid `teacherId` / unparseable or null times → `400`; client-sent `status`/`userId`/`completedAt` ignored
   - int: unknown teacher → `404`
 
 - [ ] **10. F2 — No overlapping sessions (transactional)**
