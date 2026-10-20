@@ -121,3 +121,15 @@ Start with Phase 0 now.
 > *(PDF text pasted for reference)*
 
 **Response:** Re-checked REQUIREMENTS.md against the PDF — statuses already match exactly. Dropped the `inProgress` suggestion and recorded the accepted gap (D-005). Made overlap impossible under concurrency via transaction + teacher-doc write on a replica set (D-006, D-008).
+
+---
+
+## 5. Phase 1 review — started sessions
+
+**Prompt:**
+> 1. a booked session that has started and booked should show inside booked status and if it doesn't booked then don't show it anywhere
+> 2. No overlaps, even when two requests arrive at the same momen
+
+**Clarified via questions:** keep started BOOKED sessions in `upcoming`; hide started AVAILABLE sessions and block booking them.
+
+**Response:** Updated F3/F4/F6 and assumptions in REQUIREMENTS.md; logged D-009 (supersedes D-005) and D-010. Overlap guard (D-008) already covered point 2.

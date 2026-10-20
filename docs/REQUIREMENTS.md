@@ -42,7 +42,7 @@ Lifecycle: `AVAILABLE → BOOKED → COMPLETED`. No other transitions.
 - ✅ `201` · ❌ `400` invalid body / `endTime <= startTime` · ❌ `404` teacher not found · ❌ `409` overlaps an existing session.
 
 ### F3 — Available sessions for a date · `GET /sessions/available?dateTimestamp={ts}`
-- Returns every `AVAILABLE` session whose `startTime` falls on the **IST** calendar day containing `ts`.
+- Returns every `AVAILABLE` session whose `startTime` falls on the **IST** calendar day containing `ts` **and has not started yet** (`startTime > now`).
 - **Must use a MongoDB aggregation pipeline.**
 - Each item includes basic teacher info (name, specialization) so a client can render a booking list without a second call. Sorted by `startTime` ascending.
 - ✅ `200` with an array (possibly empty) · ❌ `400` missing/invalid `dateTimestamp`.
@@ -50,9 +50,10 @@ Lifecycle: `AVAILABLE → BOOKED → COMPLETED`. No other transitions.
 ### F4 — Book session · `POST /sessions/:id/book`
 - Body: `userId`.
 - User must exist; session must exist; only `AVAILABLE` sessions can be booked; a booked session cannot be booked again.
+- A session that has already started (`startTime <= now`) cannot be booked (D-010).
 - Sets `status = BOOKED` and `userId`.
 - Booking is atomic: if two requests race for the same session, exactly one succeeds.
-- ✅ `200` with the updated session · ❌ `400` invalid ids · ❌ `404` user or session not found · ❌ `409` session not `AVAILABLE`.
+- ✅ `200` with the updated session · ❌ `400` invalid ids · ❌ `404` user or session not found · ❌ `409` session not `AVAILABLE` or already started.
 
 ### F5 — Mark session complete · `PATCH /sessions/:id/complete`
 - Session must exist; only `BOOKED` sessions can be completed.
@@ -62,7 +63,7 @@ Lifecycle: `AVAILABLE → BOOKED → COMPLETED`. No other transitions.
 ### F6 — User's sessions · `GET /users/:id/sessions`
 - Returns the user's sessions split into `upcoming` and `completed`.
 - **Must use a MongoDB aggregation pipeline.**
-- `upcoming` = `BOOKED` **and `startTime` is after now** (not started yet), sorted by `startTime` asc. `completed` = `COMPLETED`, sorted by `completedAt` desc. Each item includes basic teacher info.
+- `upcoming` = every `BOOKED` session (started or not — it stays here until marked complete), sorted by `startTime` asc. `completed` = `COMPLETED`, sorted by `completedAt` desc. Each item includes basic teacher info.
 - ✅ `200` `{ upcoming: [...], completed: [...] }` · ❌ `400` invalid id · ❌ `404` user not found.
 
 ### Cross-cutting (from the PDF's General Requirements + approved working rules)
@@ -99,8 +100,8 @@ Lifecycle: `AVAILABLE → BOOKED → COMPLETED`. No other transitions.
 1. **`dateTimestamp` is Unix epoch milliseconds** (what `Date.now()` returns). Any instant within the day works; the API resolves it to that day. *(Confirmed — D-004.)*
 2. **Day boundaries are IST** (`Asia/Kolkata`, UTC+05:30, no DST): `00:00:00.000 IST` → `23:59:59.999 IST`. A session belongs to the day its `startTime` falls on. *(Confirmed — D-004.)*
 3. **`startTime` / `endTime` are accepted as ISO-8601 strings or epoch ms** and stored as `Date` (UTC in MongoDB).
-4. **"Upcoming" means `BOOKED` with `startTime > now`.** *(Confirmed — D-005.)* Consequence (accepted): a `BOOKED` session that has started but not yet been marked complete appears in **neither** list until it is completed. No extra status or list is added — the PDF defines only `AVAILABLE` / `BOOKED` / `COMPLETED`. "Now" comes from an injected clock so tests are deterministic.
-5. **F3 returns all `AVAILABLE` sessions for the date**, including ones whose start time has already passed today — the PDF says "all … for the supplied date".
+4. **"Upcoming" means every `BOOKED` session**, including ones that have started but aren't marked complete yet — no session ever disappears from the user's view. No extra status or list — the PDF defines only `AVAILABLE` / `BOOKED` / `COMPLETED`. *(Confirmed — D-009, supersedes D-005.)*
+5. **An `AVAILABLE` session that has started is dead**: hidden from F3 and rejected by F4 with `409`. It's never shown anywhere. "Now" comes from an injected clock so tests are deterministic. *(Confirmed — D-010.)*
 6. **Sessions may be created in the past**; the PDF only requires `endTime > startTime`.
 7. **Completion does not require `endTime` to have passed**; the PDF only requires status `BOOKED`.
 8. **Phone** is a required string, loosely validated (optional leading `+`, 7–15 digits). No country-specific rules.
@@ -117,6 +118,7 @@ All Phase 1 questions resolved by the owner:
 |---|---|---|---|
 | 1 | Timezone for "the supplied date" | IST (`Asia/Kolkata`) | D-004 |
 | 2 | `dateTimestamp` unit | Milliseconds | D-004 |
-| 3 | "Upcoming" definition | `BOOKED` and not started yet | D-005 |
+| 3 | "Upcoming" definition | Every `BOOKED` session, started or not (revised) | D-009 |
+| 3b | Started but never booked | Hidden from F3, can't be booked | D-010 |
 | 4 | Teacher overlapping sessions | Reject with `409` | D-006 |
 | 5 | Teacher not found on `POST /sessions` | `404` | D-007 |
