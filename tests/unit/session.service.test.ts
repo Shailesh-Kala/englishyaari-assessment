@@ -16,6 +16,7 @@ function setup(teacherIds = [TEACHER_ID]) {
   const service = createSessionService({
     sessionRepo,
     teacherRepo: createFakeTeacherRepository(teacherIds),
+    clock: () => new Date('2026-10-20T12:00:00.000Z'),
   });
   return { service, sessionRepo };
 }
