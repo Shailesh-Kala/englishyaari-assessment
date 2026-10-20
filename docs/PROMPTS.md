@@ -187,3 +187,12 @@ Start with Phase 0 now.
 > next
 
 **Response:** TDD: tests for helmet headers, CORS allow/deny, 429 in the standard error shape, 413 for > 10 kb bodies, and new config parsing; then wired helmet, cors allowlist, express-rate-limit (errors routed through the central handler) and the JSON size limit. Added `testApp()` helper and new env vars to `.env.example`.
+
+---
+
+## 12. Phase 3 — Task 6 (Models, indexes, teacher seed)
+
+**Prompt:**
+> next
+
+**Response:** TDD: tests for case-insensitive unique email, the three session indexes, and an idempotent seed; then User/Teacher/Session models, `seedTeachers()` (upsert by email) and `npm run seed`. Smoke-ran the seed twice against a real replica set — same 3 ids. Logged D-022 (no `__v` on users/sessions).

@@ -100,7 +100,7 @@ erDiagram
     }
 ```
 
-All three use Mongoose `timestamps: true`. `__v` is hidden from responses.
+All three use Mongoose `timestamps: true`. Users and sessions have no `__v` (`versionKey: false`), so nothing needs hiding from responses; teachers keep `__v` as the overlap lock (D-008, D-022).
 
 **Indexes**
 
@@ -215,7 +215,8 @@ One round trip returns both lists (D-009: `upcoming` = every `BOOKED`).
 │   │   └── user.schemas.ts     # zod request schemas
 │   ├── teachers/
 │   │   ├── teacher.model.ts
-│   │   └── teacher.repository.ts
+│   │   ├── teacher.repository.ts
+│   │   └── teacher.seed.ts     # seed data + idempotent upsert (used by scripts/seed.ts and tests)
 │   ├── sessions/
 │   │   ├── session.model.ts
 │   │   ├── session.repository.ts   # pipelines, transaction, atomic updates
@@ -224,7 +225,7 @@ One round trip returns both lists (D-009: `upcoming` = every `BOOKED`).
 │   │   ├── session.schemas.ts
 │   │   └── ist-day.ts              # pure: timestamp → IST day range
 │   └── scripts/
-│       └── seed.ts             # idempotent teacher upsert, prints ids
+│       └── seed.ts             # connects, runs seedTeachers(), prints ids
 ├── tests/
 │   ├── unit/                   # services + pure functions, fakes + fixed clock, no DB
 │   ├── integration/            # supertest + in-memory Mongo replica set

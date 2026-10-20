@@ -33,7 +33,7 @@ Each task is 1–3 commits: `test:` (failing) → `feat:` (pass) → `refactor:`
 
 ## Data
 
-- [ ] **6. Models, indexes and teacher seed** — User, Teacher, Session schemas with indexes; `npm run seed` upserts teachers by email and prints their ids.
+- [x] **6. Models, indexes and teacher seed** — User, Teacher, Session schemas with indexes; `npm run seed` upserts teachers by email and prints their ids.
   - int: duplicate user email rejected by the unique index (case-insensitive)
   - int: session indexes exist (`status+startTime`, `teacherId+startTime`, `userId+status`)
   - int: seed is idempotent (run twice → same teacher count)

@@ -165,3 +165,10 @@ Format: **What** · **Alternatives** · **Why** · **Trade-off**
 - **Why:** Owner's choice. One command gives the replica set transactions need, and reviewers most likely have Docker. Homebrew 4.4 is end-of-life.
 - **Trade-off:** Requires Docker Desktop installed and running. Tests don't need it (in-memory replica set).
 - **Status:** Approved by owner.
+
+## D-022 — No version key on users and sessions
+
+- **What:** `versionKey: false` on User and Session; Teacher keeps the default `__v`.
+- **Alternatives:** Keep `__v` everywhere and strip it in `toJSON` and in every pipeline `$project`.
+- **Why:** Nothing reads `__v` on users or sessions (concurrency there uses conditional updates, D-018), so dropping it removes a hide-it step from every response. Teacher's `__v` is the write target that serialises session creates (D-008).
+- **Trade-off:** No Mongoose array-versioning on users/sessions — they have no arrays.
