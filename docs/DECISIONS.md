@@ -87,3 +87,66 @@ Format: **What** · **Alternatives** · **Why** · **Trade-off**
 - **Why:** Owner's choice — nobody can join a session that has already started, and hiding without blocking would be inconsistent.
 - **Trade-off:** Results depend on "now", so the clock is injected into services for deterministic tests.
 - **Status:** Approved by owner.
+
+## D-011 — Express 5
+
+- **What:** Use Express 5 rather than 4.
+- **Alternatives:** Express 4 + an `asyncHandler` wrapper or `express-async-errors`.
+- **Why:** Express 5 forwards rejected promises from async handlers to the error middleware natively — async/await everywhere with no wrapper.
+- **Trade-off:** Slightly newer; some older middleware examples assume v4 (none we use are affected).
+
+## D-012 — zod for validation (requests and env)
+
+- **What:** zod schemas for every body/params/query and for environment config.
+- **Alternatives:** Joi, express-validator, class-validator.
+- **Why:** TypeScript types are inferred from the schema (one source of truth); one library covers both requests and config.
+- **Trade-off:** Error messages need mapping to our `details` shape (done once in the error handler).
+
+## D-013 — pino + pino-http for logging
+
+- **What:** JSON logs via pino; pino-http attaches the request ID to every line.
+- **Alternatives:** winston + morgan; console.
+- **Why:** Structured by default, low overhead, request-scoped child loggers out of the box.
+- **Trade-off:** Raw JSON is hard to read; `pino-pretty` used only in `npm run dev`.
+
+## D-014 — Tests run against an in-memory Mongo replica set
+
+- **What:** Integration tests use `mongodb-memory-server` (`MongoMemoryReplSet`). Services are unit-tested with in-memory fakes.
+- **Alternatives:** Mock Mongoose in all tests; require a running Docker Mongo for tests.
+- **Why:** The two mandatory aggregation pipelines and the transaction can only be trusted when run against real MongoDB. Memory server needs no Docker, so `npm test` works anywhere, including CI.
+- **Trade-off:** The mongod binary is downloaded once on first run (cached afterwards, also in CI). Tests themselves make no network calls — only localhost.
+
+## D-015 — Routes and controllers in one file per module
+
+- **What:** `user.routes.ts` / `session.routes.ts` define routes with thin inline handlers (parse → service → respond).
+- **Alternatives:** Separate `*.controller.ts` files.
+- **Why:** Handlers are 3–5 lines each; a separate file per layer would add indirection without separating any logic. The routes/controllers layer stays free of business rules and DB access.
+- **Trade-off:** If handlers grow, split them out.
+
+## D-016 — No success envelope
+
+- **What:** Successful responses return the resource directly (`201 { ...user }`); errors always use `{ error: { code, message, details?, requestId } }`.
+- **Alternatives:** `{ data: ... }` envelope on every success.
+- **Why:** HTTP status already says success vs failure; the consistency requirement is on errors.
+- **Trade-off:** Adding metadata (e.g. pagination) later would need a shape change.
+
+## D-017 — Node's built-in `--env-file` instead of dotenv
+
+- **What:** Scripts run with `node --env-file-if-exists=.env`.
+- **Alternatives:** `dotenv` package.
+- **Why:** Built into Node ≥ 22; one fewer dependency.
+- **Trade-off:** Requires Node 22+ (declared in `engines`).
+
+## D-018 — Book/complete use atomic conditional updates, not transactions
+
+- **What:** F4/F5 validate in the service for precise errors, then write with one `findOneAndUpdate` whose filter repeats the rule (`status`, `startTime > now`). A `null` result → `409`.
+- **Alternatives:** Wrap read + write in a transaction; optimistic locking on `__v`.
+- **Why:** Only one document changes, and single-document updates are atomic in MongoDB. Users and sessions are never deleted, so the earlier existence checks can't go stale.
+- **Trade-off:** The rule appears twice (service check for the error message, filter for correctness); both are covered by tests.
+
+## D-019 — IST day range computed in the app
+
+- **What:** A pure `istDayRange(ts)` returns `[start, end)` as UTC dates; the F3 pipeline matches `startTime` against that range.
+- **Alternatives:** `$dateToString` / `$dateTrunc` with `timezone: 'Asia/Kolkata'` inside the pipeline.
+- **Why:** A plain range on `startTime` uses the `{ status, startTime }` index; computing a date per document can't. IST has a fixed offset, so the function is trivial and fully unit-testable.
+- **Trade-off:** Timezone logic sits in TypeScript rather than in the pipeline.
