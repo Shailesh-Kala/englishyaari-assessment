@@ -5,6 +5,8 @@ import { afterAll, afterEach, beforeAll, inject } from 'vitest';
 export function useTestDb() {
   beforeAll(async () => {
     await mongoose.connect(inject('mongoUri'), { dbName: `test-${process.env.VITEST_POOL_ID}` });
+    // Build indexes up front (unique email etc.) — they're dropped with the DB after each file.
+    await mongoose.connection.syncIndexes();
   });
 
   afterEach(async () => {
