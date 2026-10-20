@@ -254,3 +254,12 @@ Start with Phase 0 now.
 > next
 
 **Response:** TDD: fake + unit tests for 409 and back-to-back, integration tests for every overlap shape, every existing status, other teacher, and 5 simultaneous creates. Then `createIfNoOverlap` in a transaction that first bumps the teacher's `sessionLockVersion`. Mutation check: removing the lock makes the concurrency test fail 3/3; with it, 10/10 green.
+
+---
+
+## 19. Phase 3 — Task 11 (F3 — Available sessions)
+
+**Prompt:**
+> next
+
+**Response:** TDD: integration tests for IST-day filtering, status/other-day exclusion, IST-vs-UTC boundary, already-started exclusion (fixed clock), empty day, and bad `dateTimestamp`. Then `findAvailable` aggregation (`$match` → `$sort` → `$lookup`/`$unwind` teacher), `listAvailable` service using `istDayRange` + injected clock, and `clock` in `createApp`. `explain` confirms index scan, no blocking sort.

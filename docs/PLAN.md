@@ -62,11 +62,12 @@ Each task is 1–3 commits: `test:` (failing) → `feat:` (pass) → `refactor:`
   - int: overlapping slot vs `AVAILABLE`/`BOOKED`/`COMPLETED` → `409`; starts-inside / ends-inside / contains / contained → `409`; back-to-back before/after → `201`; other teacher same time → `201`
   - int: **concurrency** — five identical creates via `Promise.all` → exactly one `201`, four `409`, one row (mutation-checked: fails without the teacher lock)
 
-- [ ] **11. F3 — Available sessions** `GET /sessions/available` (aggregation)
+- [x] **11. F3 — Available sessions** `GET /sessions/available` (aggregation)
   - int: returns only `AVAILABLE` on that IST day, sorted by `startTime`, with `teacher`
-  - int: excludes booked/completed, other days, and already-started sessions (fixed clock)
+  - int: excludes booked/completed, other days, and already-started sessions incl. one starting exactly now (fixed clock)
   - int: IST boundary — session at `00:15 IST` belongs to that IST day, not the previous UTC day
-  - int: missing/non-numeric `dateTimestamp` → `400`; empty day → `200 []`
+  - int: missing/empty/non-numeric/negative/fractional `dateTimestamp` → `400`; empty day → `200 []`
+  - verified with `explain`: `IXSCAN` on `status_1_startTime_1`, no in-memory sort
 
 - [ ] **12. F4 — Book session** `POST /sessions/:id/book`
   - unit: rule order — user missing `404`, session missing `404`, not available `409`, already started `409 SESSION_ALREADY_STARTED`
