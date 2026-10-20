@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Session } from '../../src/sessions/session.model.js';
+import { Teacher } from '../../src/teachers/teacher.model.js';
 import { User } from '../../src/users/user.model.js';
 import { useTestDb } from '../setup/test-db.js';
 
@@ -12,6 +13,18 @@ describe('models', () => {
     await expect(
       User.create({ fullName: 'Asha R', email: 'asha@example.com', phone: '+919876543211' }),
     ).rejects.toMatchObject({ code: 11000 });
+  });
+
+  it('gives teachers an explicit session lock counter and no __v', async () => {
+    const teacher = await Teacher.create({
+      fullName: 'Priya Sharma',
+      email: 'priya@example.com',
+      specialization: 'Spoken English',
+      experience: 6,
+    });
+
+    expect(teacher.toObject()).toMatchObject({ sessionLockVersion: 0 });
+    expect(teacher.toObject()).not.toHaveProperty('__v');
   });
 
   it('indexes sessions for the available, overlap and per-user queries', async () => {
