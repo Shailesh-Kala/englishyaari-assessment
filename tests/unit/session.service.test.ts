@@ -3,6 +3,7 @@ import { AppError } from '../../src/errors.js';
 import { createSessionService } from '../../src/sessions/session.service.js';
 import { createFakeSessionRepository } from '../fakes/session-repository.js';
 import { createFakeTeacherRepository } from '../fakes/teacher-repository.js';
+import { createFakeUserRepository } from '../fakes/user-repository.js';
 
 const TEACHER_ID = '0000000000000000000000aa';
 const input = {
@@ -16,6 +17,7 @@ function setup(teacherIds = [TEACHER_ID]) {
   const service = createSessionService({
     sessionRepo,
     teacherRepo: createFakeTeacherRepository(teacherIds),
+    userRepo: createFakeUserRepository(),
     clock: () => new Date('2026-10-20T12:00:00.000Z'),
   });
   return { service, sessionRepo };
