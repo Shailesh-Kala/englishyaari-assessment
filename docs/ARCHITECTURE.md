@@ -45,22 +45,25 @@ sequenceDiagram
     participant C as Client
     participant Ctl as Route
     participant Svc as SessionService
+    participant TRep as TeacherRepo
     participant Rep as SessionRepo
     participant DB as MongoDB
 
     C->>Ctl: POST /sessions {teacherId, startTime, endTime}
     Ctl->>Ctl: zod parse (ObjectId, dates, endTime > startTime) → 400
     Ctl->>Svc: create(input)
+    Svc->>TRep: exists(teacherId)
+    Note over Svc,TRep: false → 404 TEACHER_NOT_FOUND
     Svc->>Rep: createIfNoOverlap(input)
     Rep->>DB: startTransaction
     Rep->>DB: teachers.updateOne({_id}, {$inc: {sessionLockVersion: 1}})
-    Note over Rep,DB: matched 0 → TEACHER_NOT_FOUND<br/>this write also "locks" the teacher:<br/>a concurrent create hits WriteConflict and retries
-    Rep->>DB: sessions.findOne(overlap filter)
-    Note over Rep,DB: found → SESSION_OVERLAP
+    Note over Rep,DB: this write "locks" the teacher:<br/>a concurrent create hits WriteConflict,<br/>Mongoose retries it, and the retry sees the overlap
+    Rep->>DB: sessions.exists(teacherId, startTime < end, endTime > start)
+    Note over Rep,DB: found → return null
     Rep->>DB: sessions.insertOne(status AVAILABLE)
     Rep->>DB: commit
-    Rep-->>Svc: created | teacher_not_found | overlap
-    Svc-->>Ctl: session or throw AppError(404/409)
+    Rep-->>Svc: session | null
+    Svc-->>Ctl: session, or throw 409 SESSION_OVERLAP on null
     Ctl-->>C: 201 session
 ```
 

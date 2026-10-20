@@ -57,10 +57,10 @@ Each task is 1–3 commits: `test:` (failing) → `feat:` (pass) → `refactor:`
   - int: `endTime <= startTime` → `400`; invalid `teacherId` / unparseable or null times → `400`; client-sent `status`/`userId`/`completedAt` ignored
   - int: unknown teacher → `404`
 
-- [ ] **10. F2 — No overlapping sessions (transactional)**
+- [x] **10. F2 — No overlapping sessions (transactional)**
   - unit: service maps `overlap` → `409 SESSION_OVERLAP`
-  - int: overlapping slot (any status) → `409`; back-to-back slot → `201`; other teacher same time → `201`
-  - int: **concurrency** — two overlapping creates via `Promise.all` → exactly one `201`, one `409`
+  - int: overlapping slot vs `AVAILABLE`/`BOOKED`/`COMPLETED` → `409`; starts-inside / ends-inside / contains / contained → `409`; back-to-back before/after → `201`; other teacher same time → `201`
+  - int: **concurrency** — five identical creates via `Promise.all` → exactly one `201`, four `409`, one row (mutation-checked: fails without the teacher lock)
 
 - [ ] **11. F3 — Available sessions** `GET /sessions/available` (aggregation)
   - int: returns only `AVAILABLE` on that IST day, sorted by `startTime`, with `teacher`

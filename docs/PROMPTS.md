@@ -245,3 +245,12 @@ Start with Phase 0 now.
 > next
 
 **Response:** TDD: in-memory teacher/session fakes and service tests (404 teacher, AVAILABLE default), integration tests for 201 shape, epoch-ms input, ignored client fields, `endTime <= startTime`, invalid ids/times, unknown teacher. Then zod schema (ISO or epoch ms), `teacherRepository.exists`, `sessionRepository.create`, service and route.
+
+---
+
+## 18. Phase 3 — Task 10 (F2 — No overlapping sessions)
+
+**Prompt:**
+> next
+
+**Response:** TDD: fake + unit tests for 409 and back-to-back, integration tests for every overlap shape, every existing status, other teacher, and 5 simultaneous creates. Then `createIfNoOverlap` in a transaction that first bumps the teacher's `sessionLockVersion`. Mutation check: removing the lock makes the concurrency test fail 3/3; with it, 10/10 green.
