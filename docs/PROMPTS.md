@@ -301,3 +301,12 @@ Start with Phase 0 now.
 **Clarified via questions:** convert ids at validation; move the route into the users module.
 
 **Response:** TDD: `objectIdSchema` test, then refactor threading `Types.ObjectId` through schemas, services, repositories, fakes and unit tests (pipeline no longer converts by hand). Second refactor moved `GET /users/:id/sessions` into `user.routes.ts`. Logged D-028, D-029; synced ARCHITECTURE.
+
+---
+
+## 24. Phase 3 — Task 15 (Postman collection)
+
+**Prompt:**
+> next *(then approved downloading newman temporarily to verify the collection)*
+
+**Response:** Wrote `postman/englishyaari.postman_collection.json`: 19 requests covering all six APIs plus key errors, with test scripts that chain `userId`/`sessionId` and a fresh email + random future slot per run. Ran it with newman against a seeded in-memory replica set: 41/41 assertions, twice on the same DB.
