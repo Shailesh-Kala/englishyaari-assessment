@@ -40,9 +40,9 @@ Each task is 1–3 commits: `test:` (failing) → `feat:` (pass) → `refactor:`
 
 ## Features
 
-- [ ] **7. F1 — Create user** `POST /users`
+- [x] **7. F1 — Create user** `POST /users`
   - unit: service maps duplicate-key to `409 EMAIL_ALREADY_EXISTS`
-  - int: valid body → `201`, email lowercased, no `__v`
+  - int: valid body → `201`, email lowercased, no `__v`; client-sent `_id`/`createdAt` ignored
   - int: missing/invalid fields → `400 VALIDATION_ERROR` with `details`
   - int: duplicate email (different case) → `409`
 

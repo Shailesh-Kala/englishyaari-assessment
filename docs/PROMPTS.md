@@ -207,3 +207,12 @@ Start with Phase 0 now.
 **Clarified via questions:** explicit lock field on Teacher; also create indexes on startup; keep seed as teachers only.
 
 **Response:** TDD: test then refactor replacing the teacher `__v` lock with `sessionLockVersion` (no `__v` on any model). `server.ts` now awaits `createIndexes()` before listening — verified on a fresh DB. Logged D-023, D-024; synced ARCHITECTURE.
+
+---
+
+## 14. Phase 3 — Task 7 (F1 — Create user)
+
+**Prompt:**
+> next
+
+**Response:** TDD: unit tests for the service (created / taken email → 409) and integration tests for 201, ignored client fields, 400 per field, case-insensitive duplicate → 409. Then the first full slice: zod schema → `userRoutes` → `userService` → `userRepository` (maps E11000 to `null`).
