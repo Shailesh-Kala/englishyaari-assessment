@@ -24,11 +24,12 @@ Each task is 1–3 commits: `test:` (failing) → `feat:` (pass) → `refactor:`
   - int: `AppError` → its status/code; `ZodError` → `400 VALIDATION_ERROR` with `details`
   - int: thrown unknown error → `500 INTERNAL_ERROR`, no stack in body
 
-- [ ] **5. Security middleware** — helmet, CORS allowlist, rate limit, 10 kb body limit.
+- [x] **5. Security middleware** — helmet, CORS allowlist, rate limit, 10 kb body limit.
   - int: security headers present, `x-powered-by` absent
   - int: allowed origin gets `Access-Control-Allow-Origin`; other origin doesn't
   - int: exceeding the limit → `429 RATE_LIMITED`
-  - int: body > 10 kb → `413`
+  - int: body > 10 kb → `413 PAYLOAD_TOO_LARGE`
+  - unit: `CORS_ORIGINS` parsed from a comma-separated list; defaults for rate limit
 
 ## Data
 

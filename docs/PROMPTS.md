@@ -178,3 +178,12 @@ Start with Phase 0 now.
 > Docker Desktop, next
 
 **Response:** Logged D-021 (Docker Desktop for local Mongo). TDD: tests for request-id generate/echo/sanitise, 404, invalid JSON, AppError, ZodError and 500 shape; then `request-logger.ts` (pino-http), `errors.ts` (AppError, error + 404 handlers) wired into `createApp({ logger })`.
+
+---
+
+## 11. Phase 3 — Task 5 (Security middleware)
+
+**Prompt:**
+> next
+
+**Response:** TDD: tests for helmet headers, CORS allow/deny, 429 in the standard error shape, 413 for > 10 kb bodies, and new config parsing; then wired helmet, cors allowlist, express-rate-limit (errors routed through the central handler) and the JSON size limit. Added `testApp()` helper and new env vars to `.env.example`.
