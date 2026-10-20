@@ -1,7 +1,8 @@
+import type { Types } from 'mongoose';
 import { Teacher } from './teacher.model.js';
 
 export type TeacherRepository = {
-  exists(id: string): Promise<boolean>;
+  exists(id: Types.ObjectId): Promise<boolean>;
 };
 
 export const teacherRepository: TeacherRepository = {

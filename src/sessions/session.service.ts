@@ -1,3 +1,4 @@
+import type { Types } from 'mongoose';
 import { AppError } from '../errors.js';
 import type { TeacherRepository } from '../teachers/teacher.repository.js';
 import type { UserRepository } from '../users/user.repository.js';
@@ -38,7 +39,7 @@ export function createSessionService({ sessionRepo, teacherRepo, userRepo, clock
       return session;
     },
 
-    async book(sessionId: string, userId: string) {
+    async book(sessionId: Types.ObjectId, userId: Types.ObjectId) {
       if (!(await userRepo.exists(userId))) {
         throw new AppError(404, 'USER_NOT_FOUND', 'User not found');
       }
@@ -58,7 +59,7 @@ export function createSessionService({ sessionRepo, teacherRepo, userRepo, clock
       return booked;
     },
 
-    async complete(sessionId: string) {
+    async complete(sessionId: Types.ObjectId) {
       const session = await sessionRepo.findById(sessionId);
       if (!session) throw new AppError(404, 'SESSION_NOT_FOUND', 'Session not found');
       if (session.status !== SessionStatus.BOOKED) throw sessionNotBooked();
@@ -69,7 +70,7 @@ export function createSessionService({ sessionRepo, teacherRepo, userRepo, clock
     },
 
     // Upcoming = every BOOKED session, started or not, until it is completed (D-009).
-    async listForUser(userId: string) {
+    async listForUser(userId: Types.ObjectId) {
       if (!(await userRepo.exists(userId))) {
         throw new AppError(404, 'USER_NOT_FOUND', 'User not found');
       }

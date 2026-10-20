@@ -7,7 +7,7 @@ const DUPLICATE_KEY = 11000;
 export type UserRecord = UserDoc & { _id: Types.ObjectId };
 
 export type UserRepository = {
-  exists(id: string): Promise<boolean>;
+  exists(id: Types.ObjectId): Promise<boolean>;
   existsByEmail(email: string): Promise<boolean>;
   /** Returns null when the unique email index rejects the insert. */
   create(input: CreateUserInput): Promise<UserRecord | null>;

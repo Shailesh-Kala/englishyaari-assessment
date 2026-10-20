@@ -1,4 +1,4 @@
-import mongoose, { Types } from 'mongoose';
+import mongoose, { type Types } from 'mongoose';
 import { Teacher } from '../teachers/teacher.model.js';
 import { Session, SessionStatus, type SessionDoc } from './session.model.js';
 import type { CreateSessionInput } from './session.schemas.js';
@@ -11,22 +11,25 @@ export type SessionWithTeacher = SessionRecord & { teacher: TeacherSummary };
 export type SessionRepository = {
   /** Returns null when the teacher already has a session overlapping [startTime, endTime). */
   createIfNoOverlap(input: NewSession): Promise<SessionRecord | null>;
-  findById(id: string): Promise<SessionRecord | null>;
+  findById(id: Types.ObjectId): Promise<SessionRecord | null>;
   /**
    * Atomically books the session only if it is still AVAILABLE and starts after `now`.
    * Returns null if another request got there first (or the rules no longer hold).
    */
   bookIfAvailable(booking: {
-    sessionId: string;
-    userId: string;
+    sessionId: Types.ObjectId;
+    userId: Types.ObjectId;
     now: Date;
   }): Promise<SessionRecord | null>;
   /** Atomically completes the session only if it is still BOOKED; null otherwise. */
-  completeIfBooked(completion: { sessionId: string; now: Date }): Promise<SessionRecord | null>;
+  completeIfBooked(completion: {
+    sessionId: Types.ObjectId;
+    now: Date;
+  }): Promise<SessionRecord | null>;
   /** AVAILABLE sessions starting in [dayStart, dayEnd) and strictly after `now`, by startTime. */
   findAvailable(range: { dayStart: Date; dayEnd: Date; now: Date }): Promise<SessionWithTeacher[]>;
   /** The user's BOOKED sessions (by startTime asc) and COMPLETED ones (by completedAt desc). */
-  findForUser(userId: string): Promise<UserSessions>;
+  findForUser(userId: Types.ObjectId): Promise<UserSessions>;
 };
 
 export type UserSessions = { upcoming: SessionWithTeacher[]; completed: SessionWithTeacher[] };
@@ -104,7 +107,7 @@ export const sessionRepository: SessionRepository = {
     const [result] = await Session.aggregate<UserSessions>([
       {
         $match: {
-          userId: new Types.ObjectId(userId), // aggregate() doesn't cast like find() does
+          userId, // already an ObjectId — aggregate() doesn't cast strings like find() does
           status: { $in: [SessionStatus.BOOKED, SessionStatus.COMPLETED] },
         },
       },

@@ -41,7 +41,7 @@ describe('sessionService.listForUser', () => {
       completedAt: new Date('2026-10-19T10:00:00.000Z'),
     });
 
-    const result = await service.listForUser(String(user._id));
+    const result = await service.listForUser(user._id);
 
     expect(result.upcoming.map((s) => s._id)).toEqual([booked._id]);
     expect(result.completed.map((s) => s._id)).toEqual([done._id]);
@@ -51,7 +51,9 @@ describe('sessionService.listForUser', () => {
   it('throws 404 USER_NOT_FOUND for an unknown user', async () => {
     const { service } = await setup();
 
-    const error = await service.listForUser('0000000000000000000000ff').catch((e: unknown) => e);
+    const error = await service
+      .listForUser(new Types.ObjectId('0000000000000000000000ff'))
+      .catch((e: unknown) => e);
 
     expect(error).toBeInstanceOf(AppError);
     expect(error).toMatchObject({ status: 404, code: 'USER_NOT_FOUND' });

@@ -1,3 +1,4 @@
+import { Types } from 'mongoose';
 import { describe, expect, it } from 'vitest';
 import { AppError } from '../../src/errors.js';
 import { createSessionService } from '../../src/sessions/session.service.js';
@@ -5,7 +6,7 @@ import { createFakeSessionRepository } from '../fakes/session-repository.js';
 import { createFakeTeacherRepository } from '../fakes/teacher-repository.js';
 import { createFakeUserRepository } from '../fakes/user-repository.js';
 
-const TEACHER_ID = '0000000000000000000000aa';
+const TEACHER_ID = new Types.ObjectId('0000000000000000000000aa');
 const input = {
   teacherId: TEACHER_ID,
   startTime: new Date('2026-10-21T04:30:00.000Z'),
@@ -30,7 +31,7 @@ describe('sessionService.create', () => {
     const session = await service.create(input);
 
     expect(session).toMatchObject({ status: 'AVAILABLE', userId: null, completedAt: null });
-    expect(String(session.teacherId)).toBe(TEACHER_ID);
+    expect(session.teacherId).toEqual(TEACHER_ID);
   });
 
   it('throws 404 TEACHER_NOT_FOUND and stores nothing when the teacher does not exist', async () => {

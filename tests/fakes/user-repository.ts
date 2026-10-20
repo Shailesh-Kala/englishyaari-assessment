@@ -9,8 +9,8 @@ export function createFakeUserRepository(): UserRepository & { all(): UserRecord
   const users: UserRecord[] = [];
 
   return {
-    async exists(id: string) {
-      return users.some((user) => String(user._id) === id);
+    async exists(id: Types.ObjectId) {
+      return users.some((user) => user._id.equals(id));
     },
     async existsByEmail(email: string) {
       return users.some((user) => user.email === email);

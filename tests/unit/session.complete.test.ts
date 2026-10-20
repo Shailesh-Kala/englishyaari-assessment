@@ -8,7 +8,7 @@ import { createFakeTeacherRepository } from '../fakes/teacher-repository.js';
 import { createFakeUserRepository } from '../fakes/user-repository.js';
 
 const NOW = new Date('2026-10-21T06:00:00.000Z');
-const MISSING_ID = '0000000000000000000000ff';
+const MISSING_ID = new Types.ObjectId('0000000000000000000000ff');
 
 function setup(sessionRepo = createFakeSessionRepository()) {
   const service = createSessionService({
@@ -33,7 +33,7 @@ describe('sessionService.complete', () => {
     const { service, sessionRepo } = setup();
     const session = sessionRepo.seed(booked);
 
-    const completed = await service.complete(String(session._id));
+    const completed = await service.complete(session._id);
 
     expect(completed).toMatchObject({ status: SessionStatus.COMPLETED, completedAt: NOW });
   });
@@ -50,7 +50,7 @@ describe('sessionService.complete', () => {
       const { service, sessionRepo } = setup();
       const session = sessionRepo.seed({ status });
 
-      await expectAppError(service.complete(String(session._id)), 409, 'SESSION_NOT_BOOKED');
+      await expectAppError(service.complete(session._id), 409, 'SESSION_NOT_BOOKED');
     },
   );
 
@@ -59,6 +59,6 @@ describe('sessionService.complete', () => {
     const session = sessionRepo.seed(booked);
     const { service } = setup({ ...sessionRepo, completeIfBooked: async () => null });
 
-    await expectAppError(service.complete(String(session._id)), 409, 'SESSION_NOT_BOOKED');
+    await expectAppError(service.complete(session._id), 409, 'SESSION_NOT_BOOKED');
   });
 });

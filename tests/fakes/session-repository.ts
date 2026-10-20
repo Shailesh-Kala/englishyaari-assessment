@@ -48,10 +48,10 @@ export function createFakeSessionRepository(teachers: TeacherSummary[] = []): Se
   return {
     async createIfNoOverlap({ teacherId, startTime, endTime }: NewSession) {
       const overlaps = sessions.some(
-        (s) => String(s.teacherId) === teacherId && s.startTime < endTime && s.endTime > startTime,
+        (s) => s.teacherId.equals(teacherId) && s.startTime < endTime && s.endTime > startTime,
       );
       if (overlaps) return null;
-      return seed({ teacherId: new Types.ObjectId(teacherId), startTime, endTime });
+      return seed({ teacherId, startTime, endTime });
     },
     async findAvailable({ dayStart, dayEnd, now }) {
       return withTeacher(
@@ -67,7 +67,7 @@ export function createFakeSessionRepository(teachers: TeacherSummary[] = []): Se
       );
     },
     async findForUser(userId) {
-      const mine = sessions.filter((s) => String(s.userId) === userId);
+      const mine = sessions.filter((s) => s.userId?.equals(userId));
       return {
         upcoming: withTeacher(
           mine.filter((s) => s.status === SessionStatus.BOOKED).sort(byTime((s) => s.startTime, 1)),
@@ -80,19 +80,19 @@ export function createFakeSessionRepository(teachers: TeacherSummary[] = []): Se
       };
     },
     async findById(id) {
-      return sessions.find((s) => String(s._id) === id) ?? null;
+      return sessions.find((s) => s._id.equals(id)) ?? null;
     },
     async bookIfAvailable({ sessionId, userId, now }) {
-      const session = sessions.find((s) => String(s._id) === sessionId);
+      const session = sessions.find((s) => s._id.equals(sessionId));
       if (!session || session.status !== SessionStatus.AVAILABLE || session.startTime <= now) {
         return null;
       }
       session.status = SessionStatus.BOOKED;
-      session.userId = new Types.ObjectId(userId);
+      session.userId = userId;
       return session;
     },
     async completeIfBooked({ sessionId, now }) {
-      const session = sessions.find((s) => String(s._id) === sessionId);
+      const session = sessions.find((s) => s._id.equals(sessionId));
       if (!session || session.status !== SessionStatus.BOOKED) return null;
       session.status = SessionStatus.COMPLETED;
       session.completedAt = now;

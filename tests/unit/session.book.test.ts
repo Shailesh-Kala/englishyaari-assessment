@@ -1,3 +1,4 @@
+import { Types } from 'mongoose';
 import { describe, expect, it } from 'vitest';
 import { AppError } from '../../src/errors.js';
 import { SessionStatus } from '../../src/sessions/session.model.js';
@@ -7,7 +8,7 @@ import { createFakeTeacherRepository } from '../fakes/teacher-repository.js';
 import { createFakeUserRepository } from '../fakes/user-repository.js';
 
 const NOW = new Date('2026-10-20T12:00:00.000Z');
-const MISSING_ID = '0000000000000000000000ff';
+const MISSING_ID = new Types.ObjectId('0000000000000000000000ff');
 
 async function setup() {
   const sessionRepo = createFakeSessionRepository();
@@ -23,7 +24,7 @@ async function setup() {
     userRepo,
     clock: () => NOW,
   });
-  return { service, sessionRepo, userId: String(user!._id) };
+  return { service, sessionRepo, userId: user!._id };
 }
 
 async function expectAppError(promise: Promise<unknown>, status: number, code: string) {
@@ -37,10 +38,10 @@ describe('sessionService.book', () => {
     const { service, sessionRepo, userId } = await setup();
     const session = sessionRepo.seed({});
 
-    const booked = await service.book(String(session._id), userId);
+    const booked = await service.book(session._id, userId);
 
     expect(booked.status).toBe(SessionStatus.BOOKED);
-    expect(String(booked.userId)).toBe(userId);
+    expect(booked.userId).toEqual(userId);
   });
 
   it('checks the user first: unknown user → 404 USER_NOT_FOUND even if the session is missing too', async () => {
@@ -61,7 +62,7 @@ describe('sessionService.book', () => {
       const { service, sessionRepo, userId } = await setup();
       const session = sessionRepo.seed({ status });
 
-      await expectAppError(service.book(String(session._id), userId), 409, 'SESSION_NOT_AVAILABLE');
+      await expectAppError(service.book(session._id, userId), 409, 'SESSION_NOT_AVAILABLE');
     },
   );
 
@@ -72,7 +73,7 @@ describe('sessionService.book', () => {
     const { service, sessionRepo, userId } = await setup();
     const session = sessionRepo.seed({ startTime });
 
-    await expectAppError(service.book(String(session._id), userId), 409, 'SESSION_ALREADY_STARTED');
+    await expectAppError(service.book(session._id, userId), 409, 'SESSION_ALREADY_STARTED');
   });
 
   it('throws 409 SESSION_NOT_AVAILABLE when another booking wins after the checks', async () => {
@@ -85,10 +86,6 @@ describe('sessionService.book', () => {
       clock: () => NOW,
     });
 
-    await expectAppError(
-      losingService.book(String(session._id), userId),
-      409,
-      'SESSION_NOT_AVAILABLE',
-    );
+    await expectAppError(losingService.book(session._id, userId), 409, 'SESSION_NOT_AVAILABLE');
   });
 });
