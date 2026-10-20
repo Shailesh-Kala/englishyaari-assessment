@@ -9,7 +9,7 @@ Each task is 1–3 commits: `test:` (failing) → `feat:` (pass) → `refactor:`
 - [x] **1. Tooling scaffold** — `package.json`, TypeScript (strict), ESLint + Prettier, Vitest config, npm scripts (`lint`, `format`, `format:check`, `typecheck`, `test`; `dev`, `build`, `start`, `seed` are added with the files they run). Native ESM (D-020).
   Commits: `chore: scaffold TypeScript project with lint, format and test tooling`
 
-- [ ] **2. CI** — GitHub Actions on every push: `npm ci` → lint → typecheck → test, with the mongod binary cached.
+- [x] **2. CI** — GitHub Actions on every push: `npm ci` → lint → format check → typecheck → test on Ubuntu 24.04. mongod binary cache is added in Task 3 with the memory server.
   Commits: `ci: run lint, typecheck and tests on push`
 
 - [ ] **3. Config, logger, DB and health check** — zod-validated env (`config.ts`), `.env.example`, pino logger, Mongoose connect/disconnect, `docker-compose.yml` (single-node replica set), test harness (in-memory replica set), `GET /health`.

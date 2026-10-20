@@ -151,3 +151,12 @@ Start with Phase 0 now.
 > next
 
 **Response:** Added package.json (ESM, Node ≥ 22), strict tsconfig, ESLint flat config + Prettier, Vitest config. Lint, typecheck, format check and test all pass. Logged D-020 (ESM).
+
+---
+
+## 8. Phase 3 — Task 2 (CI)
+
+**Prompt:**
+> next
+
+**Response:** Added GitHub Actions workflow (lint, format check, typecheck, test on Node 24) — first run green. Pinned runner to `ubuntu-24.04` because `ubuntu-latest` is moving to Ubuntu 26, which mongod test binaries may not support yet.
