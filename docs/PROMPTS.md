@@ -86,3 +86,12 @@ Start with Phase 0 now.
 </details>
 
 **Response:** Created public repo `englishyaari-assessment`, added `.gitignore`, README skeleton, `CLAUDE.md` working rules (adapted to the booking domain — see DECISIONS.md D-001), and skeleton docs (`PROMPTS`, `REQUIREMENTS`, `ARCHITECTURE`, `PLAN`, `DECISIONS`), each in its own commit, then pushed.
+
+---
+
+## 2. Phase 0 checkpoint → Phase 1 (Requirements)
+
+**Prompt:**
+> Approved all adaptations, seed teachers. No need any deployment as we it's assessment only for local run
+
+**Response:** Logged D-001 as approved, added D-002 (seed teachers) and D-003 (local only), removed deploy/live-URL from README and CLAUDE.md. Wrote `docs/REQUIREMENTS.md` (goal, personas, F1–F6 with status codes, out-of-scope with reasons, assumptions, open questions with proposed defaults).
