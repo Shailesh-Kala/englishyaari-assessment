@@ -69,11 +69,11 @@ Each task is 1–3 commits: `test:` (failing) → `feat:` (pass) → `refactor:`
   - int: missing/empty/non-numeric/negative/fractional `dateTimestamp` → `400`; empty day → `200 []`
   - verified with `explain`: `IXSCAN` on `status_1_startTime_1`, no in-memory sort
 
-- [ ] **12. F4 — Book session** `POST /sessions/:id/book`
-  - unit: rule order — user missing `404`, session missing `404`, not available `409`, already started `409 SESSION_ALREADY_STARTED`
+- [x] **12. F4 — Book session** `POST /sessions/:id/book`
+  - unit: rule order — user missing `404` (checked first), session missing `404`, `BOOKED`/`COMPLETED` `409 SESSION_NOT_AVAILABLE`, started or starting now `409 SESSION_ALREADY_STARTED`, lost race `409`
   - int: happy path → `200`, `status BOOKED`, `userId` set
-  - int: booking again → `409 SESSION_NOT_AVAILABLE`
-  - int: **concurrency** — two users book one session via `Promise.all` → exactly one `200`
+  - int: booking again / completed → `409 SESSION_NOT_AVAILABLE`; started → `409 SESSION_ALREADY_STARTED`; unknown user/session → `404`; malformed ids / missing userId → `400`
+  - int: **concurrency** — five users book one session via `Promise.all` → exactly one `200`, stored `userId` = winner (mutation-checked: fails without the conditional filter)
 
 - [ ] **13. F5 — Complete session** `PATCH /sessions/:id/complete`
   - unit: missing `404`; `AVAILABLE` or `COMPLETED` → `409 SESSION_NOT_BOOKED`

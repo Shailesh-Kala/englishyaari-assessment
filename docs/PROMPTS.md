@@ -263,3 +263,12 @@ Start with Phase 0 now.
 > next
 
 **Response:** TDD: integration tests for IST-day filtering, status/other-day exclusion, IST-vs-UTC boundary, already-started exclusion (fixed clock), empty day, and bad `dateTimestamp`. Then `findAvailable` aggregation (`$match` → `$sort` → `$lookup`/`$unwind` teacher), `listAvailable` service using `istDayRange` + injected clock, and `clock` in `createApp`. `explain` confirms index scan, no blocking sort.
+
+---
+
+## 20. Phase 3 — Task 12 (F4 — Book session)
+
+**Prompt:**
+> next
+
+**Response:** TDD: unit tests for rule order (user → session → status → started → lost race) with extended fakes; integration tests for 200, re-book/completed/started 409s, 404s, 400s, and 5 simultaneous bookings. Then `userRepo.exists`, `findById`, `bookIfAvailable` (conditional `findOneAndUpdate`), service `book` and route. Mutation check: dropping the conditional filter fails the race test 3/3; restored 10/10.
