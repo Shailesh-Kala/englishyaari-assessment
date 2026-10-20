@@ -33,6 +33,12 @@ function toErrorResponse(err: unknown): { status: number; body: ErrorBody } {
       body: { code: 'INVALID_JSON', message: 'Request body is not valid JSON' },
     };
   }
+  if (isBodyParserError(err, 'entity.too.large')) {
+    return {
+      status: 413,
+      body: { code: 'PAYLOAD_TOO_LARGE', message: 'Request body exceeds 10 kb' },
+    };
+  }
   return { status: 500, body: { code: 'INTERNAL_ERROR', message: 'Internal server error' } };
 }
 
