@@ -188,3 +188,27 @@ Format: **What** · **Alternatives** · **Why** · **Trade-off**
 - **Why:** Owner's choice. Guarantees uniqueness from the very first request; `createIndexes` only adds, so it's safe on a shared database.
 - **Trade-off:** Slightly slower startup on a large existing collection while indexes build.
 - **Status:** Approved by owner.
+
+## D-025 — Explicit email check before insert, unique index as race guard
+
+- **What:** `userService.create` calls `userRepo.existsByEmail` and throws `409 EMAIL_ALREADY_EXISTS` before inserting. If the insert still hits the unique index (a simultaneous sign-up won), the repository returns `null` and the service throws the same `409`.
+- **Alternatives:** Unique index only (one query fewer, rule hidden in the DB).
+- **Why:** Owner's choice — the rule "email must be unique" is visible in the service and unit-testable; the index keeps it correct under concurrency.
+- **Trade-off:** Two queries per sign-up instead of one.
+- **Status:** Approved by owner.
+
+## D-026 — In-memory fake repositories for unit tests
+
+- **What:** `tests/fakes/` holds in-memory implementations of each repository, typed against the real `XRepository` type. Unit tests use them; they never import Mongoose models.
+- **Alternatives:** Inline stubs per test; returning unsaved Mongoose documents.
+- **Why:** Owner's choice. One realistic fake per repository is reusable across tests, and the shared type makes TypeScript fail if the fake drifts from the real contract.
+- **Trade-off:** Fakes need maintaining alongside repositories; integration tests still cover the real ones.
+- **Status:** Approved by owner.
+
+## D-027 — Phone must be an Indian mobile number
+
+- **What:** Accept 10 digits starting with 6–9, optional `+91` / `91` / `0` prefix, ignoring spaces and hyphens; store normalised as `+91XXXXXXXXXX`.
+- **Alternatives:** Loose 7–15 digits (old assumption 8); strict E.164; `libphonenumber-js`.
+- **Why:** Owner's choice — the product's users are in India (see D-004). Normalising means one stored format however the user typed it.
+- **Trade-off:** Users with non-Indian numbers can't sign up.
+- **Status:** Approved by owner.

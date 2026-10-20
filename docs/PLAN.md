@@ -41,10 +41,11 @@ Each task is 1–3 commits: `test:` (failing) → `feat:` (pass) → `refactor:`
 ## Features
 
 - [x] **7. F1 — Create user** `POST /users`
-  - unit: service maps duplicate-key to `409 EMAIL_ALREADY_EXISTS`
+  - unit (in-memory fake repo): existing email → `409 EMAIL_ALREADY_EXISTS` without inserting; check-then-insert race → `409`
   - int: valid body → `201`, email lowercased, no `__v`; client-sent `_id`/`createdAt` ignored
   - int: missing/invalid fields → `400 VALIDATION_ERROR` with `details`
   - int: duplicate email (different case) → `409`
+  - int: Indian mobile accepted in common formats and stored as `+91XXXXXXXXXX`; non-Indian/short/long/5-prefixed → `400`
 
 - [ ] **8. IST day range** — pure `istDayRange(timestamp)` → `{ start, end }`.
   - unit: mid-day, just after IST midnight, just before IST midnight, UTC-date ≠ IST-date edge (e.g. `2026-10-20T20:00Z` → IST 21 Oct)

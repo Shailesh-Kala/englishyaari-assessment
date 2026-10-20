@@ -216,3 +216,14 @@ Start with Phase 0 now.
 > next
 
 **Response:** TDD: unit tests for the service (created / taken email → 409) and integration tests for 201, ignored client fields, 400 per field, case-insensitive duplicate → 409. Then the first full slice: zod schema → `userRoutes` → `userService` → `userRepository` (maps E11000 to `null`).
+
+---
+
+## 15. Phase 3 — Task 7 follow-up (email check, fakes, phone)
+
+**Prompt:**
+> fix these: *(quoted the three "worth discussing" notes from Task 7: index-only email uniqueness, unsaved-document fake, loose phone rule)*
+
+**Clarified via questions:** explicit email check + index; in-memory fake repo; Indian mobile numbers.
+
+**Response:** Two TDD cycles: (1) in-memory `createFakeUserRepository`, service tests, then `existsByEmail` pre-check with the index as race guard; (2) Indian mobile tests, then zod rule normalising to `+91XXXXXXXXXX`. Logged D-025–D-027; updated REQUIREMENTS, ARCHITECTURE, PLAN.

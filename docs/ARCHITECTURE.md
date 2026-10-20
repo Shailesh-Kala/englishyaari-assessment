@@ -74,7 +74,7 @@ erDiagram
         ObjectId _id
         string fullName
         string email "unique, lowercased"
-        string phone
+        string phone "+91XXXXXXXXXX"
         Date createdAt
         Date updatedAt
     }
@@ -227,6 +227,7 @@ One round trip returns both lists (D-009: `upcoming` = every `BOOKED`).
 │       └── seed.ts             # connects, runs seedTeachers(), prints ids
 ├── tests/
 │   ├── unit/                   # services + pure functions, fakes + fixed clock, no DB
+│   ├── fakes/                  # in-memory repositories implementing the real repository types
 │   ├── integration/            # supertest + in-memory Mongo replica set
 │   └── setup/                  # replica-set lifecycle, DB cleanup, fixtures
 ├── postman/englishyaari.postman_collection.json
@@ -269,7 +270,7 @@ One round trip returns both lists (D-009: `upcoming` = every `BOOKED`).
 | **No teacher overlap, even under concurrency** (D-008): the overlap check and insert run in a transaction that first writes to the teacher doc (`$inc sessionLockVersion`). Two concurrent creates for one teacher conflict on that doc; Mongoose's `connection.transaction()` retries the loser, which then sees the overlap. | Needs a replica set (docker-compose provides one). Creates for the same teacher are serialised. |
 | **Booking is one atomic conditional update** — `findOneAndUpdate({ _id, status: 'AVAILABLE', startTime: { $gt: now } }, { status: 'BOOKED', userId })`. Two users racing for a session: exactly one gets it, the other gets `409`. No transaction needed (one document). | The service reads the session first to return a precise error (`404` / `409` reason); the atomic update is what actually guarantees correctness. |
 | **Completing is the same pattern** — `{ _id, status: 'BOOKED' }` → `COMPLETED`, `completedAt = now`. | — |
-| **Email uniqueness enforced by the unique index**; duplicate-key error `E11000` is mapped to `409`. | Relies on the index existing — tests assert it. |
+| **Email uniqueness: explicit check + unique index** (D-025). The service checks `existsByEmail` first (rule visible and unit-tested); if a simultaneous sign-up slips between check and insert, the unique index rejects it (`E11000`) and that also becomes `409`. | One extra query per sign-up. Correctness still rests on the index, which is created at startup (D-024). |
 | **Injected clock** (`clock: () => Date`) used for "now" in F3, F4, F5. Tests pass a fixed date. | One extra constructor argument per service. |
 | **Health check** `GET /health` reports DB connectivity (`503` when Mongo is down). | — |
 | **Structured logs** (pino JSON) with a request ID per request — taken from an incoming `x-request-id` header or generated, echoed back in the response header and in every error body. | JSON logs are less readable raw; `pino-pretty` in dev. |

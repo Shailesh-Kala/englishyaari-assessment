@@ -30,7 +30,8 @@ Lifecycle: `AVAILABLE → BOOKED → COMPLETED`. No other transitions.
 
 ### F1 — Create user · `POST /users`
 - Body: `fullName`, `email`, `phone` — all required.
-- Email is unique (case-insensitive; stored lowercased).
+- Email is unique (case-insensitive; stored lowercased). The service checks before inserting; the unique index catches simultaneous sign-ups (D-025).
+- Phone must be an Indian mobile number; stored as `+91XXXXXXXXXX` (D-027).
 - ✅ `201` with the created user · ❌ `400` invalid body · ❌ `409` email already exists.
 
 ### F2 — Create session · `POST /sessions`
@@ -104,7 +105,7 @@ Lifecycle: `AVAILABLE → BOOKED → COMPLETED`. No other transitions.
 5. **An `AVAILABLE` session that has started is dead**: hidden from F3 and rejected by F4 with `409`. It's never shown anywhere. "Now" comes from an injected clock so tests are deterministic. *(Confirmed — D-010.)*
 6. **Sessions may be created in the past**; the PDF only requires `endTime > startTime`.
 7. **Completion does not require `endTime` to have passed**; the PDF only requires status `BOOKED`.
-8. **Phone** is a required string, loosely validated (optional leading `+`, 7–15 digits). No country-specific rules.
+8. **Phone** must be an Indian mobile: 10 digits starting with 6–9, optional `+91`, `91` or `0` prefix; spaces and hyphens ignored; stored as `+91XXXXXXXXXX`. *(Confirmed — D-027, replaces the earlier loose 7–15 digit rule.)*
 9. **Teacher email is not unique-enforced** (PDF marks only User email as unique). Teachers are seeded, so this never surfaces via the API.
 10. **Teacher `experience`** is a non-negative integer number of years.
 11. Missing referenced records (teacher on create, user on book) return **`404`** — consistent across endpoints. *(Confirmed — D-007.)*
