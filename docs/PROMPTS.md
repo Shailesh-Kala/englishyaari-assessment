@@ -227,3 +227,12 @@ Start with Phase 0 now.
 **Clarified via questions:** explicit email check + index; in-memory fake repo; Indian mobile numbers.
 
 **Response:** Two TDD cycles: (1) in-memory `createFakeUserRepository`, service tests, then `existsByEmail` pre-check with the index as race guard; (2) Indian mobile tests, then zod rule normalising to `+91XXXXXXXXXX`. Logged D-025–D-027; updated REQUIREMENTS, ARCHITECTURE, PLAN.
+
+---
+
+## 16. Phase 3 — Task 8 (IST day range)
+
+**Prompt:**
+> next
+
+**Response:** TDD: unit tests for midday, IST midnight (inclusive), last ms of the day, a UTC/IST date mismatch, and the exclusive end; then `istDayRange(ts)` with a fixed +05:30 offset.

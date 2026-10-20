@@ -47,8 +47,9 @@ Each task is 1–3 commits: `test:` (failing) → `feat:` (pass) → `refactor:`
   - int: duplicate email (different case) → `409`
   - int: Indian mobile accepted in common formats and stored as `+91XXXXXXXXXX`; non-Indian/short/long/5-prefixed → `400`
 
-- [ ] **8. IST day range** — pure `istDayRange(timestamp)` → `{ start, end }`.
+- [x] **8. IST day range** — pure `istDayRange(timestamp)` → `{ start, end }`.
   - unit: mid-day, just after IST midnight, just before IST midnight, UTC-date ≠ IST-date edge (e.g. `2026-10-20T20:00Z` → IST 21 Oct)
+  - unit: end is exclusive — next IST midnight belongs to the next day
 
 - [ ] **9. F2 — Create session (basic)** `POST /sessions`
   - unit: teacher missing → `404 TEACHER_NOT_FOUND`
