@@ -95,3 +95,17 @@ Start with Phase 0 now.
 > Approved all adaptations, seed teachers. No need any deployment as we it's assessment only for local run
 
 **Response:** Logged D-001 as approved, added D-002 (seed teachers) and D-003 (local only), removed deploy/live-URL from README and CLAUDE.md. Wrote `docs/REQUIREMENTS.md` (goal, personas, F1–F6 with status codes, out-of-scope with reasons, assumptions, open questions with proposed defaults).
+
+---
+
+## 3. Phase 1 review — open-question answers
+
+**Prompt:**
+> here are Open questions answers:
+> 1. IST
+> 2. milliseconds
+> 3. upcoming will be - only booked sessions that haven’t started yet
+> 4. Yes, reject a teacher creating sessions that overlap
+> 5. 404
+
+**Response:** Updated REQUIREMENTS.md (IST day boundaries, upcoming = booked & future, teacher overlap → `409`, resolved-questions table) and logged D-004 to D-007. Flagged two consequences for review: started-but-not-completed sessions drop out of both lists, and the overlap-check race.

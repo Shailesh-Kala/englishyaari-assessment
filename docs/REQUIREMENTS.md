@@ -36,11 +36,12 @@ Lifecycle: `AVAILABLE → BOOKED → COMPLETED`. No other transitions.
 ### F2 — Create session · `POST /sessions`
 - Body: `teacherId`, `startTime`, `endTime`.
 - Teacher must exist; `endTime` must be after `startTime`.
+- **No overlap:** the new session must not overlap any existing session of the same teacher (any status). Overlap = `existing.startTime < new.endTime AND existing.endTime > new.startTime`. Back-to-back sessions (one ends exactly when the next starts) are allowed.
 - Created with `status = AVAILABLE`, `userId = null`, `completedAt = null`.
-- ✅ `201` · ❌ `400` invalid body / `endTime <= startTime` · ❌ `404` teacher not found.
+- ✅ `201` · ❌ `400` invalid body / `endTime <= startTime` · ❌ `404` teacher not found · ❌ `409` overlaps an existing session.
 
 ### F3 — Available sessions for a date · `GET /sessions/available?dateTimestamp={ts}`
-- Returns every `AVAILABLE` session whose `startTime` falls on the calendar day containing `ts`.
+- Returns every `AVAILABLE` session whose `startTime` falls on the **IST** calendar day containing `ts`.
 - **Must use a MongoDB aggregation pipeline.**
 - Each item includes basic teacher info (name, specialization) so a client can render a booking list without a second call. Sorted by `startTime` ascending.
 - ✅ `200` with an array (possibly empty) · ❌ `400` missing/invalid `dateTimestamp`.
@@ -60,7 +61,7 @@ Lifecycle: `AVAILABLE → BOOKED → COMPLETED`. No other transitions.
 ### F6 — User's sessions · `GET /users/:id/sessions`
 - Returns the user's sessions split into `upcoming` and `completed`.
 - **Must use a MongoDB aggregation pipeline.**
-- `upcoming` = `BOOKED`, sorted by `startTime` asc. `completed` = `COMPLETED`, sorted by `completedAt` desc. Each item includes basic teacher info.
+- `upcoming` = `BOOKED` **and `startTime` is after now** (not started yet), sorted by `startTime` asc. `completed` = `COMPLETED`, sorted by `completedAt` desc. Each item includes basic teacher info.
 - ✅ `200` `{ upcoming: [...], completed: [...] }` · ❌ `400` invalid id · ❌ `404` user not found.
 
 ### Cross-cutting (from the PDF's General Requirements + approved working rules)
@@ -84,7 +85,7 @@ Lifecycle: `AVAILABLE → BOOKED → COMPLETED`. No other transitions.
 | Authentication / authorization | Not in the PDF. `userId` is passed in the request body. Adding auth would double the surface area for no assessed value. |
 | Teacher CRUD endpoints | Not in the PDF. Teachers are seeded (D-002). |
 | Update / delete for users or sessions, cancel or reschedule a booking | Not in the PDF; each adds new state transitions and edge cases. |
-| Overlap checks (a teacher's sessions overlapping, or a user booking two overlapping sessions) | Not required by the PDF. Noted as an open question in case the reviewer expects it. |
+| Overlap check on the **user** side (a user booking two overlapping sessions) | Not required by the PDF; only teacher-side overlap is in scope (D-006). |
 | Pagination | PDF says return *all* sessions; results are bounded to one day / one user (D-001). |
 | Auto-completing sessions when `endTime` passes (cron/job) | PDF defines completion as an explicit API call. |
 | Per-user timezones | Single reference timezone keeps date filtering deterministic (see Assumptions). |
@@ -94,24 +95,27 @@ Lifecycle: `AVAILABLE → BOOKED → COMPLETED`. No other transitions.
 
 ## Assumptions
 
-1. **`dateTimestamp` is Unix epoch milliseconds** (what `Date.now()` returns). Any instant within the day works; the API resolves it to that day.
-2. **Day boundaries are UTC** (`00:00:00.000Z` → `23:59:59.999Z`). A session belongs to the day its `startTime` falls on.
-3. **`startTime` / `endTime` are accepted as ISO-8601 strings or epoch ms** and stored as `Date`.
-4. **"Upcoming" means status `BOOKED`**, regardless of whether `startTime` has passed. Status is the source of truth; a session leaves "upcoming" only when it is marked complete. This keeps F6 deterministic and avoids a session vanishing from both lists.
+1. **`dateTimestamp` is Unix epoch milliseconds** (what `Date.now()` returns). Any instant within the day works; the API resolves it to that day. *(Confirmed — D-004.)*
+2. **Day boundaries are IST** (`Asia/Kolkata`, UTC+05:30, no DST): `00:00:00.000 IST` → `23:59:59.999 IST`. A session belongs to the day its `startTime` falls on. *(Confirmed — D-004.)*
+3. **`startTime` / `endTime` are accepted as ISO-8601 strings or epoch ms** and stored as `Date` (UTC in MongoDB).
+4. **"Upcoming" means `BOOKED` with `startTime > now`.** *(Confirmed — D-005.)* Consequence: a `BOOKED` session that has started but not yet been marked complete appears in **neither** list until it is completed. "Now" comes from an injected clock so tests are deterministic.
 5. **F3 returns all `AVAILABLE` sessions for the date**, including ones whose start time has already passed today — the PDF says "all … for the supplied date".
 6. **Sessions may be created in the past**; the PDF only requires `endTime > startTime`.
 7. **Completion does not require `endTime` to have passed**; the PDF only requires status `BOOKED`.
 8. **Phone** is a required string, loosely validated (optional leading `+`, 7–15 digits). No country-specific rules.
 9. **Teacher email is not unique-enforced** (PDF marks only User email as unique). Teachers are seeded, so this never surfaces via the API.
 10. **Teacher `experience`** is a non-negative integer number of years.
-11. Missing referenced records (teacher on create, user on book) return **`404`** — consistent across endpoints.
+11. Missing referenced records (teacher on create, user on book) return **`404`** — consistent across endpoints. *(Confirmed — D-007.)*
+12. **Overlap check counts sessions of every status** — a teacher can't be in two places, whether the existing slot is available, booked or completed. *(D-006.)*
 
 ## Open questions
 
-Each has a proposed default (already reflected above). Approve or change:
+All Phase 1 questions resolved by the owner:
 
-1. **Timezone for "the supplied date"** — UTC (proposed), or IST (`Asia/Kolkata`) since the product appears India-focused?
-2. **`dateTimestamp` unit** — milliseconds (proposed) or seconds?
-3. **"Upcoming" definition** — all `BOOKED` (proposed), or only `BOOKED` with `startTime` in the future?
-4. **Overlapping sessions** — leave unchecked (proposed), or reject a teacher creating overlapping sessions?
-5. **Teacher-not-found on `POST /sessions`** — `404` (proposed) or `422`?
+| # | Question | Answer | Decision |
+|---|---|---|---|
+| 1 | Timezone for "the supplied date" | IST (`Asia/Kolkata`) | D-004 |
+| 2 | `dateTimestamp` unit | Milliseconds | D-004 |
+| 3 | "Upcoming" definition | `BOOKED` and not started yet | D-005 |
+| 4 | Teacher overlapping sessions | Reject with `409` | D-006 |
+| 5 | Teacher not found on `POST /sessions` | `404` | D-007 |
