@@ -17,10 +17,11 @@ Each task is 1–3 commits: `test:` (failing) → `feat:` (pass) → `refactor:`
   - int: DB disconnected → `503 { status: "error", db: "down" }`
   - unit: invalid env (missing `MONGODB_URI`) throws at startup
 
-- [ ] **4. Request ID + central error handling** — request-id middleware, `pino-http`, `AppError`, error handler, 404 route handler.
-  - int: response carries `x-request-id` (generated, or echoed from the request)
+- [x] **4. Request ID + central error handling** — request-id middleware, `pino-http`, `AppError`, error handler, 404 route handler.
+  - int: response carries `x-request-id` (generated, or echoed from the request; unsafe values replaced)
   - int: unknown route → `404 ROUTE_NOT_FOUND` in the standard error shape with `requestId`
   - int: malformed JSON → `400 INVALID_JSON`
+  - int: `AppError` → its status/code; `ZodError` → `400 VALIDATION_ERROR` with `details`
   - int: thrown unknown error → `500 INTERNAL_ERROR`, no stack in body
 
 - [ ] **5. Security middleware** — helmet, CORS allowlist, rate limit, 10 kb body limit.

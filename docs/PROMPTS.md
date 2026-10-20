@@ -169,3 +169,12 @@ Start with Phase 0 now.
 > next
 
 **Response:** TDD: failing tests for env validation and `/health` (db up → 200, db down → 503), then `config.ts`, `health.routes.ts`, `app.ts`, `server.ts` (graceful shutdown). Added test harness on an in-memory replica set, build/dev/start scripts, docker-compose replica set, `.env.example`, CI binary cache. Smoke-tested the built server end to end.
+
+---
+
+## 10. Phase 3 — Task 4 (Request ID + central error handling)
+
+**Prompt:**
+> Docker Desktop, next
+
+**Response:** Logged D-021 (Docker Desktop for local Mongo). TDD: tests for request-id generate/echo/sanitise, 404, invalid JSON, AppError, ZodError and 500 shape; then `request-logger.ts` (pino-http), `errors.ts` (AppError, error + 404 handlers) wired into `createApp({ logger })`.

@@ -205,6 +205,7 @@ One round trip returns both lists (D-009: `upcoming` = every `BOOKED`).
 │   ├── server.ts               # load config, create logger, connect DB, listen, graceful shutdown
 │   ├── config.ts               # env vars parsed + validated with zod
 │   ├── errors.ts               # AppError, error handler, 404 handler
+│   ├── request-logger.ts       # pino-http + request id (incoming x-request-id or UUID)
 │   ├── health.routes.ts
 │   ├── users/
 │   │   ├── user.model.ts

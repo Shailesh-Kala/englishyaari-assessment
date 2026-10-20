@@ -157,3 +157,11 @@ Format: **What** · **Alternatives** · **Why** · **Trade-off**
 - **Alternatives:** CommonJS output (extensionless imports).
 - **Why:** Vite/Vitest warn that ESM config inside a CommonJS package is going away; ESM is the current Node default and every dependency we use supports it.
 - **Trade-off:** `.js` extensions in TypeScript imports look odd at first.
+
+## D-021 — Docker Desktop for local MongoDB
+
+- **What:** Local development runs MongoDB via `docker compose up -d` (Docker Desktop on macOS).
+- **Alternatives:** Homebrew `mongodb-community` 8.x started manually as a replica set; the existing Homebrew 4.4 install.
+- **Why:** Owner's choice. One command gives the replica set transactions need, and reviewers most likely have Docker. Homebrew 4.4 is end-of-life.
+- **Trade-off:** Requires Docker Desktop installed and running. Tests don't need it (in-memory replica set).
+- **Status:** Approved by owner.
