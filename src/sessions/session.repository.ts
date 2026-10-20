@@ -16,6 +16,7 @@ export const sessionRepository: SessionRepository = {
     let created: SessionRecord | null = null;
     // Mongoose retries the callback on transient errors such as WriteConflict.
     await mongoose.connection.transaction(async (session) => {
+      created = null; // the callback re-runs on retry
       // Writing the teacher doc first makes concurrent creates for this teacher conflict,
       // so one aborts and retries, and its retry then sees the winner's session (D-008).
       await Teacher.updateOne({ _id: teacherId }, { $inc: { sessionLockVersion: 1 } }, { session });
@@ -25,10 +26,7 @@ export const sessionRepository: SessionRepository = {
         startTime: { $lt: endTime },
         endTime: { $gt: startTime },
       }).session(session);
-      if (overlapping) {
-        created = null;
-        return;
-      }
+      if (overlapping) return;
 
       const [doc] = await Session.create([{ teacherId, startTime, endTime }], { session });
       created = doc!.toObject();
