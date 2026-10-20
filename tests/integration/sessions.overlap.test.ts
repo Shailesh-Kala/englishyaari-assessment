@@ -1,6 +1,6 @@
 import request from 'supertest';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { Session } from '../../src/sessions/session.model.js';
+import { Session, SessionStatus } from '../../src/sessions/session.model.js';
 import { Teacher } from '../../src/teachers/teacher.model.js';
 import { testApp } from '../setup/test-app.js';
 import { useTestDb } from '../setup/test-db.js';
@@ -30,7 +30,7 @@ describe('POST /sessions overlap rule', () => {
   const post = (startTime: string, endTime: string, forTeacher = teacherId) =>
     request(app).post('/sessions').send({ teacherId: forTeacher, startTime, endTime });
 
-  it.each(['AVAILABLE', 'BOOKED', 'COMPLETED'])(
+  it.each(Object.values(SessionStatus))(
     'returns 409 SESSION_OVERLAP against an existing %s session',
     async (status) => {
       await Session.create({ teacherId, ...EXISTING, status });
