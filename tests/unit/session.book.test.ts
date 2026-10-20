@@ -76,7 +76,7 @@ describe('sessionService.book', () => {
   });
 
   it('throws 409 SESSION_NOT_AVAILABLE when another booking wins after the checks', async () => {
-    const { service, sessionRepo, userId } = await setup();
+    const { sessionRepo, userId } = await setup();
     const session = sessionRepo.seed({});
     const losingService = createSessionService({
       sessionRepo: { ...sessionRepo, bookIfAvailable: async () => null },
