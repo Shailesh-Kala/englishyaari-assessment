@@ -13,7 +13,11 @@ export function createFakeSessionRepository(): SessionRepository & { all(): Sess
   const sessions: SessionRecord[] = [];
 
   return {
-    async create({ teacherId, startTime, endTime }: NewSession) {
+    async createIfNoOverlap({ teacherId, startTime, endTime }: NewSession) {
+      const overlaps = sessions.some(
+        (s) => String(s.teacherId) === teacherId && s.startTime < endTime && s.endTime > startTime,
+      );
+      if (overlaps) return null;
       const session: SessionRecord = {
         _id: new Types.ObjectId(String(sessions.length + 1).padStart(24, '0')),
         teacherId: new Types.ObjectId(teacherId),

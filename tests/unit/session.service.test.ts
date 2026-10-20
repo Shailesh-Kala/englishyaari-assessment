@@ -40,3 +40,34 @@ describe('sessionService.create', () => {
     expect(sessionRepo.all()).toHaveLength(0);
   });
 });
+
+describe('sessionService.create overlap rule', () => {
+  it('throws 409 SESSION_OVERLAP when the slot overlaps an existing one', async () => {
+    const { service } = setup();
+    await service.create(input);
+
+    const error = await service
+      .create({
+        ...input,
+        startTime: new Date('2026-10-21T05:00:00.000Z'),
+        endTime: new Date('2026-10-21T06:00:00.000Z'),
+      })
+      .catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(AppError);
+    expect(error).toMatchObject({ status: 409, code: 'SESSION_OVERLAP' });
+  });
+
+  it('allows a back-to-back slot', async () => {
+    const { service, sessionRepo } = setup();
+    await service.create(input);
+
+    await service.create({
+      ...input,
+      startTime: input.endTime,
+      endTime: new Date('2026-10-21T06:30:00.000Z'),
+    });
+
+    expect(sessionRepo.all()).toHaveLength(2);
+  });
+});
