@@ -11,7 +11,15 @@ export function createSessionService({ sessionRepo, teacherRepo }: Deps) {
       if (!(await teacherRepo.exists(input.teacherId))) {
         throw new AppError(404, 'TEACHER_NOT_FOUND', 'Teacher not found');
       }
-      return sessionRepo.create(input);
+      const session = await sessionRepo.createIfNoOverlap(input);
+      if (!session) {
+        throw new AppError(
+          409,
+          'SESSION_OVERLAP',
+          'Teacher already has a session that overlaps this time',
+        );
+      }
+      return session;
     },
   };
 }
