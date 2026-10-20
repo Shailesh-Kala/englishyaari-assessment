@@ -31,3 +31,35 @@ Format: **What** · **Alternatives** · **Why** · **Trade-off**
 - **Why:** Owner confirmed the assessment is evaluated by running it locally.
 - **Trade-off:** Reviewer must have Node and MongoDB (or Docker) available locally.
 - **Status:** Approved by owner.
+
+## D-004 — IST day boundaries, millisecond timestamps
+
+- **What:** `dateTimestamp` is epoch ms; "the supplied date" is the `Asia/Kolkata` calendar day containing it. Dates are stored in UTC.
+- **Alternatives:** UTC days; client-supplied timezone parameter; epoch seconds.
+- **Why:** Owner's choice — the product's users are in India. ms matches `Date.now()` in JS clients.
+- **Trade-off:** Users outside IST see days cut at IST midnight. IST has no DST, so the offset is a fixed +05:30.
+- **Status:** Approved by owner.
+
+## D-005 — "Upcoming" = booked and not yet started
+
+- **What:** F6 `upcoming` lists sessions with `status = BOOKED` and `startTime > now`.
+- **Alternatives:** All `BOOKED` sessions regardless of time.
+- **Why:** Owner's choice — "upcoming" should mean in the future.
+- **Trade-off:** A booked session that has started but isn't marked complete appears in neither list until completed. `now` is injected for deterministic tests.
+- **Status:** Approved by owner.
+
+## D-006 — Reject overlapping sessions for the same teacher
+
+- **What:** `POST /sessions` returns `409` if the new slot overlaps any existing session of that teacher (any status). Back-to-back slots are allowed.
+- **Alternatives:** No overlap check (PDF is silent); check only `AVAILABLE`/`BOOKED`.
+- **Why:** Owner's choice — a teacher can't be in two places at once. Completed sessions count too, since they also occupied the teacher's time.
+- **Trade-off:** Check-then-insert has a race (two concurrent overlapping creates). How we close it is decided in Phase 2.
+- **Status:** Approved by owner.
+
+## D-007 — `404` for missing referenced records
+
+- **What:** Unknown `teacherId` (F2) or `userId` (F4) returns `404`, same as unknown path ids.
+- **Alternatives:** `422 Unprocessable Entity` for references inside the body.
+- **Why:** Owner's choice; one consistent "not found" status across the API.
+- **Trade-off:** Less precise than `422` for body references; the error `code` (`TEACHER_NOT_FOUND`, `USER_NOT_FOUND`) disambiguates.
+- **Status:** Approved by owner.
