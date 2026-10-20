@@ -18,6 +18,18 @@ describe('loadConfig', () => {
       PORT: 3000,
       MONGODB_URI: 'mongodb://localhost/db',
       LOG_LEVEL: 'info',
+      CORS_ORIGINS: [],
+      RATE_LIMIT_WINDOW_MS: 900_000,
+      RATE_LIMIT_MAX: 100,
     });
+  });
+
+  it('splits CORS_ORIGINS on commas and trims entries', () => {
+    const config = loadConfig({
+      MONGODB_URI: 'mongodb://localhost/db',
+      CORS_ORIGINS: 'http://a.test, http://b.test,',
+    });
+
+    expect(config.CORS_ORIGINS).toEqual(['http://a.test', 'http://b.test']);
   });
 });

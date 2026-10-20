@@ -2,10 +2,10 @@ import express from 'express';
 import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
-import { createApp } from '../../src/app.js';
 import { AppError, errorHandler } from '../../src/errors.js';
 import { requestLogger } from '../../src/request-logger.js';
 import { silentLogger } from '../setup/silent-logger.js';
+import { testApp } from '../setup/test-app.js';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
@@ -19,7 +19,7 @@ function appThatThrows(error: unknown) {
 }
 
 describe('request id', () => {
-  const app = createApp({ logger: silentLogger });
+  const app = testApp();
 
   it('generates an x-request-id when the client sends none', async () => {
     const res = await request(app).get('/health');
@@ -41,7 +41,7 @@ describe('request id', () => {
 });
 
 describe('central error handling', () => {
-  const app = createApp({ logger: silentLogger });
+  const app = testApp();
 
   it('returns 404 ROUTE_NOT_FOUND for unknown routes in the standard shape', async () => {
     const res = await request(app).get('/nope');
