@@ -319,3 +319,12 @@ Start with Phase 0 now.
 > Fix the log noise, skip test:postman, next
 
 **Response:** TDD: test asserting log lines hold only id/method/url/status and no `authorization`/`cookie` values, then pino-http serializers (D-030). Wrote the final README: prerequisites, setup, seed, run, test, Postman, API table, rules, error codes, configuration, design summary, troubleshooting. Smoke-tested `npm run dev`. Skipped `test:postman` per owner.
+
+---
+
+## 26. Local run + API documentation check
+
+**Prompt:**
+> Docker Desktop installed, run the full local setup once and test the apis. Also can you check the API documentation
+
+**Response:** Docker Desktop wasn't found on the machine (no `Docker.app`, only a stale 2022 `docker` symlink), and Homebrew MongoDB 4.4 holds port 27017 — so ran everything except `docker compose` against a local replica set on 27018: `.env` from `.env.example`, `npm run seed`, `npm run build` + `npm start`, 32 direct API calls (all expected statuses/codes) and the Postman collection (19 requests, 41/41). Checked README/ARCHITECTURE/REQUIREMENTS/Postman docs against real responses; fixed a wrong error example in ARCHITECTURE and a missing `--wait` in the Postman description.

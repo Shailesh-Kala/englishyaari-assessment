@@ -157,8 +157,7 @@ F3 / F6 items add `"teacher": { "_id", "fullName", "specialization" }`.
 {
   "error": {
     "code": "SESSION_NOT_AVAILABLE",
-    "message": "Session is already booked",
-    "details": [],
+    "message": "Session is not available for booking",
     "requestId": "0b9c1c8e-6a51-4c43-9d1e-2f5c7a0e9b11"
   }
 }

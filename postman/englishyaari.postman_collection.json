@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "EnglishYaari Session Booking API",
-    "description": "Run top to bottom (Collection Runner works).\n\n1. `docker compose up -d`, `npm run seed`, `npm run dev`.\n2. Paste one teacher id from the seed output into the `teacherId` collection variable.\n\n`userId` and `sessionId` are set automatically by the test scripts. Each run uses a fresh email and a random future slot, so re-running doesn't collide with earlier data.",
+    "description": "Run top to bottom (Collection Runner works).\n\n1. `docker compose up -d --wait`, `npm run seed`, `npm run dev`.\n2. Paste one teacher id from the seed output into the `teacherId` collection variable.\n\n`userId` and `sessionId` are set automatically by the test scripts. Each run uses a fresh email and a random future slot, so re-running doesn't collide with earlier data.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
