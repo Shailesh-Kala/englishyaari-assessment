@@ -93,5 +93,9 @@ Each task is 1–3 commits: `test:` (failing) → `feat:` (pass) → `refactor:`
 - [x] **15. Postman collection** — every endpoint plus key error cases; collection variables (`baseUrl`, `teacherId`, `userId`, `sessionId`) set by test scripts so it runs top-to-bottom. Fresh email + random future slot per run. Verified with newman: 19 requests, 41 assertions, 0 failures, twice on the same DB.
   Commits: `docs: add Postman collection`
 
-- [ ] **16. README** — prerequisites, setup, run, seed, test, Postman usage, error codes, links to docs.
+- [x] **16. README** — prerequisites, setup, run, seed, test, Postman usage, error codes, links to docs. `npm run dev` smoke-tested.
+
+## Follow-ups
+
+- [x] **Log noise** — request log lines carry only id, method, url and status (no headers). TDD: `test:` then `fix:` (D-030).
   Commits: `docs: complete README`

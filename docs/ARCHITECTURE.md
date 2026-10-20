@@ -277,6 +277,6 @@ One round trip returns both lists (D-009: `upcoming` = every `BOOKED`).
 | **Email uniqueness: explicit check + unique index** (D-025). The service checks `existsByEmail` first (rule visible and unit-tested); if a simultaneous sign-up slips between check and insert, the unique index rejects it (`E11000`) and that also becomes `409`. | One extra query per sign-up. Correctness still rests on the index, which is created at startup (D-024). |
 | **Injected clock** (`clock: () => Date`) used for "now" in F3, F4, F5. Tests pass a fixed date. | One extra constructor argument per service. |
 | **Health check** `GET /health` reports DB connectivity (`503` when Mongo is down). | — |
-| **Structured logs** (pino JSON) with a request ID per request — taken from an incoming `x-request-id` header or generated, echoed back in the response header and in every error body. | JSON logs are less readable raw; `pino-pretty` in dev. |
+| **Structured logs** (pino JSON) with a request ID per request — taken from an incoming `x-request-id` header or generated, echoed back in the response header and in every error body. Each request line holds only id, method, url and status — never headers, so cookies or tokens can't leak into logs (D-030). | JSON logs are less readable raw; `pino-pretty` in dev. |
 | **Graceful shutdown** on `SIGINT`/`SIGTERM`: stop accepting connections, then close Mongo. | — |
 | **CI** (GitHub Actions) runs lint, type-check and the full test suite on every push. | mongod binary for tests is downloaded once per CI cache (D-014). |

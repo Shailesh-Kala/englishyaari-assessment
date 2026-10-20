@@ -228,3 +228,11 @@ Format: **What** · **Alternatives** · **Why** · **Trade-off**
 - **Why:** Owner's choice — anyone looking for a `/users` endpoint finds them all in one file, while session rules stay in the session service.
 - **Trade-off:** The users routes module depends on the session service.
 - **Status:** Approved by owner.
+
+## D-030 — Log only id, method, url and status per request
+
+- **What:** Custom pino-http serializers: `req → { id, method, url }`, `res → { statusCode }`.
+- **Alternatives:** pino-http defaults (full request and response headers on every line); redacting specific headers.
+- **Why:** Owner's choice after the Postman run showed ~1.5 kB of headers per log line. An allowlist is shorter than a redact list and can't leak a header nobody thought of (cookies, future auth tokens).
+- **Trade-off:** Header-level debugging (e.g. user-agent) needs a temporary log change.
+- **Status:** Approved by owner.

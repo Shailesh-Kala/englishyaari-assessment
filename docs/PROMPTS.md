@@ -310,3 +310,12 @@ Start with Phase 0 now.
 > next *(then approved downloading newman temporarily to verify the collection)*
 
 **Response:** Wrote `postman/englishyaari.postman_collection.json`: 19 requests covering all six APIs plus key errors, with test scripts that chain `userId`/`sessionId` and a fresh email + random future slot per run. Ran it with newman against a seeded in-memory replica set: 41/41 assertions, twice on the same DB.
+
+---
+
+## 25. Phase 3 — Log fix + Task 16 (README)
+
+**Prompt:**
+> Fix the log noise, skip test:postman, next
+
+**Response:** TDD: test asserting log lines hold only id/method/url/status and no `authorization`/`cookie` values, then pino-http serializers (D-030). Wrote the final README: prerequisites, setup, seed, run, test, Postman, API table, rules, error codes, configuration, design summary, troubleshooting. Smoke-tested `npm run dev`. Skipped `test:postman` per owner.
