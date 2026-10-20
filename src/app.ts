@@ -37,18 +37,17 @@ export function createApp({ logger, corsOrigins, rateLimit: limits, clock }: App
     }),
   );
   app.use(express.json({ limit: '10kb' }));
+
+  const userService = createUserService({ userRepo: userRepository });
+  const sessionService = createSessionService({
+    sessionRepo: sessionRepository,
+    teacherRepo: teacherRepository,
+    userRepo: userRepository,
+    clock,
+  });
   app.use(healthRoutes);
-  app.use(userRoutes(createUserService({ userRepo: userRepository })));
-  app.use(
-    sessionRoutes(
-      createSessionService({
-        sessionRepo: sessionRepository,
-        teacherRepo: teacherRepository,
-        userRepo: userRepository,
-        clock,
-      }),
-    ),
-  );
+  app.use(userRoutes(userService, sessionService));
+  app.use(sessionRoutes(sessionService));
   app.use(notFoundHandler);
   app.use(errorHandler);
   return app;
