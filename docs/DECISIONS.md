@@ -40,7 +40,7 @@ Format: **What** · **Alternatives** · **Why** · **Trade-off**
 - **Trade-off:** Users outside IST see days cut at IST midnight. IST has no DST, so the offset is a fixed +05:30.
 - **Status:** Approved by owner.
 
-## D-005 — "Upcoming" = booked and not yet started
+## D-005 — "Upcoming" = booked and not yet started *(superseded by D-009)*
 
 - **What:** F6 `upcoming` lists sessions with `status = BOOKED` and `startTime > now`.
 - **Alternatives:** All `BOOKED` sessions regardless of time.
@@ -70,4 +70,20 @@ Format: **What** · **Alternatives** · **Why** · **Trade-off**
 - **Alternatives:** Accept the race and document it; a unique index (can't express time-range overlap); an app-level mutex (breaks with more than one process).
 - **Why:** Owner requires overlap to never happen. A plain transaction isn't enough: two inserts of different documents don't conflict, so a shared write is needed to serialise them.
 - **Trade-off:** Transactions require MongoDB in replica-set mode, even locally. Mitigated with a `docker-compose.yml` that starts a single-node replica set, and an in-memory replica set for tests. Creates for the same teacher are serialised, which is fine at this scale.
+- **Status:** Approved by owner.
+
+## D-009 — "Upcoming" = every booked session *(supersedes D-005)*
+
+- **What:** F6 `upcoming` lists all `BOOKED` sessions, whether or not `startTime` has passed, sorted by `startTime` asc.
+- **Alternatives:** Only `BOOKED` with `startTime > now` (D-005); a third `inProgress` list; grouping by status (`booked` / `completed`).
+- **Why:** Owner's choice — a booked session must never vanish from the user's view before it's completed. Keeps the PDF's two lists and three statuses.
+- **Trade-off:** `upcoming` can contain sessions whose start time has passed; the client can tell from `startTime`.
+- **Status:** Approved by owner.
+
+## D-010 — Started `AVAILABLE` sessions are hidden and unbookable
+
+- **What:** F3 only returns `AVAILABLE` sessions with `startTime > now`. F4 rejects booking a session with `startTime <= now` with `409`. The check sits in the same atomic update as the status check: `{ _id, status: 'AVAILABLE', startTime: { $gt: now } }`.
+- **Alternatives:** Show all sessions for the date (PDF literal); hide from the list but still allow booking.
+- **Why:** Owner's choice — nobody can join a session that has already started, and hiding without blocking would be inconsistent.
+- **Trade-off:** Results depend on "now", so the clock is injected into services for deterministic tests.
 - **Status:** Approved by owner.
