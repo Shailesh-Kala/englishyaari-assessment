@@ -21,6 +21,8 @@ export type SessionRepository = {
     userId: string;
     now: Date;
   }): Promise<SessionRecord | null>;
+  /** Atomically completes the session only if it is still BOOKED; null otherwise. */
+  completeIfBooked(completion: { sessionId: string; now: Date }): Promise<SessionRecord | null>;
   /** AVAILABLE sessions starting in [dayStart, dayEnd) and strictly after `now`, by startTime. */
   findAvailable(range: { dayStart: Date; dayEnd: Date; now: Date }): Promise<SessionWithTeacher[]>;
 };
@@ -69,6 +71,14 @@ export const sessionRepository: SessionRepository = {
     return Session.findOneAndUpdate(
       { _id: sessionId, status: SessionStatus.AVAILABLE, startTime: { $gt: now } },
       { $set: { status: SessionStatus.BOOKED, userId } },
+      { returnDocument: 'after' },
+    ).lean<SessionRecord>();
+  },
+
+  async completeIfBooked({ sessionId, now }) {
+    return Session.findOneAndUpdate(
+      { _id: sessionId, status: SessionStatus.BOOKED },
+      { $set: { status: SessionStatus.COMPLETED, completedAt: now } },
       { returnDocument: 'after' },
     ).lean<SessionRecord>();
   },

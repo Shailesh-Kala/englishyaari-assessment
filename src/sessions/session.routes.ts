@@ -21,5 +21,9 @@ export function sessionRoutes(sessionService: SessionService) {
       const { id } = sessionIdParamsSchema.parse(req.params);
       const { userId } = bookSessionSchema.parse(req.body);
       res.json(await sessionService.book(id, userId));
+    })
+    .patch('/sessions/:id/complete', async (req, res) => {
+      const { id } = sessionIdParamsSchema.parse(req.params);
+      res.json(await sessionService.complete(id));
     });
 }

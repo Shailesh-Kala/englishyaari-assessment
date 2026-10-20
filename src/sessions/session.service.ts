@@ -17,6 +17,10 @@ function sessionNotAvailable() {
   return new AppError(409, 'SESSION_NOT_AVAILABLE', 'Session is not available for booking');
 }
 
+function sessionNotBooked() {
+  return new AppError(409, 'SESSION_NOT_BOOKED', 'Only booked sessions can be completed');
+}
+
 export function createSessionService({ sessionRepo, teacherRepo, userRepo, clock }: Deps) {
   return {
     async create(input: CreateSessionInput) {
@@ -52,6 +56,16 @@ export function createSessionService({ sessionRepo, teacherRepo, userRepo, clock
       const booked = await sessionRepo.bookIfAvailable({ sessionId, userId, now });
       if (!booked) throw sessionNotAvailable();
       return booked;
+    },
+
+    async complete(sessionId: string) {
+      const session = await sessionRepo.findById(sessionId);
+      if (!session) throw new AppError(404, 'SESSION_NOT_FOUND', 'Session not found');
+      if (session.status !== SessionStatus.BOOKED) throw sessionNotBooked();
+
+      const completed = await sessionRepo.completeIfBooked({ sessionId, now: clock() });
+      if (!completed) throw sessionNotBooked();
+      return completed;
     },
 
     async listAvailable(dateTimestamp: number) {
