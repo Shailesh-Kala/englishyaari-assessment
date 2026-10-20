@@ -39,7 +39,7 @@ cp .env.example .env
 docker compose up -d --wait
 ```
 
-`--wait` returns once MongoDB is healthy, which is also when the replica set has been initiated.
+`--wait` returns once MongoDB is healthy, which is also when the replica set has been initiated. The first run pulls the `mongo:8.2` image, so it takes a minute or two.
 
 ## Seed
 

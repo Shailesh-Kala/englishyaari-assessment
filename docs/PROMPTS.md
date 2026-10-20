@@ -328,3 +328,12 @@ Start with Phase 0 now.
 > Docker Desktop installed, run the full local setup once and test the apis. Also can you check the API documentation
 
 **Response:** Docker Desktop wasn't found on the machine (no `Docker.app`, only a stale 2022 `docker` symlink), and Homebrew MongoDB 4.4 holds port 27017 — so ran everything except `docker compose` against a local replica set on 27018: `.env` from `.env.example`, `npm run seed`, `npm run build` + `npm start`, 32 direct API calls (all expected statuses/codes) and the Postman collection (19 requests, 41/41). Checked README/ARCHITECTURE/REQUIREMENTS/Postman docs against real responses; fixed a wrong error example in ARCHITECTURE and a missing `--wait` in the Postman description.
+
+---
+
+## 27. Full local run on Docker
+
+**Prompt:**
+> I have installed Docker Desktop and it's open you can run the command now and test
+
+**Response:** Stopped Homebrew MongoDB 4.4 (owner approved) to free port 27017. `docker compose up -d --wait` → healthy in ~90 s (first image pull), `rs0` PRIMARY on MongoDB 8.2.12. With `.env` only: `npm run seed`, `npm start`, 32 API calls all as expected, Postman 19 requests / 41 assertions, and race checks on the real DB (5 overlapping creates → 1×201; 5 users booking one session → 1×200). Indexes present in the container. Added a first-run note to the README.
