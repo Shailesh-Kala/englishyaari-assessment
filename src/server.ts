@@ -21,6 +21,7 @@ const app = createApp({
   logger,
   corsOrigins: config.CORS_ORIGINS,
   rateLimit: { windowMs: config.RATE_LIMIT_WINDOW_MS, max: config.RATE_LIMIT_MAX },
+  clock: () => new Date(),
 });
 
 const server = app.listen(config.PORT, () => {

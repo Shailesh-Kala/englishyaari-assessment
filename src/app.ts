@@ -18,9 +18,10 @@ export type AppOptions = {
   logger: Logger;
   corsOrigins: string[];
   rateLimit: { windowMs: number; max: number };
+  clock: () => Date;
 };
 
-export function createApp({ logger, corsOrigins, rateLimit: limits }: AppOptions) {
+export function createApp({ logger, corsOrigins, rateLimit: limits, clock }: AppOptions) {
   const app = express();
   app.use(requestLogger(logger));
   app.use(helmet());
@@ -40,7 +41,11 @@ export function createApp({ logger, corsOrigins, rateLimit: limits }: AppOptions
   app.use(userRoutes(createUserService({ userRepo: userRepository })));
   app.use(
     sessionRoutes(
-      createSessionService({ sessionRepo: sessionRepository, teacherRepo: teacherRepository }),
+      createSessionService({
+        sessionRepo: sessionRepository,
+        teacherRepo: teacherRepository,
+        clock,
+      }),
     ),
   );
   app.use(notFoundHandler);

@@ -1,11 +1,16 @@
 import { AppError } from '../errors.js';
 import type { TeacherRepository } from '../teachers/teacher.repository.js';
+import { istDayRange } from './ist-day.js';
 import type { SessionRepository } from './session.repository.js';
 import type { CreateSessionInput } from './session.schemas.js';
 
-type Deps = { sessionRepo: SessionRepository; teacherRepo: TeacherRepository };
+type Deps = {
+  sessionRepo: SessionRepository;
+  teacherRepo: TeacherRepository;
+  clock: () => Date;
+};
 
-export function createSessionService({ sessionRepo, teacherRepo }: Deps) {
+export function createSessionService({ sessionRepo, teacherRepo, clock }: Deps) {
   return {
     async create(input: CreateSessionInput) {
       if (!(await teacherRepo.exists(input.teacherId))) {
@@ -20,6 +25,11 @@ export function createSessionService({ sessionRepo, teacherRepo }: Deps) {
         );
       }
       return session;
+    },
+
+    async listAvailable(dateTimestamp: number) {
+      const { start, end } = istDayRange(dateTimestamp);
+      return sessionRepo.findAvailable({ dayStart: start, dayEnd: end, now: clock() });
     },
   };
 }

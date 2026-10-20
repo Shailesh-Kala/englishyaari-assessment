@@ -15,3 +15,10 @@ export const createSessionSchema = z
   });
 
 export type CreateSessionInput = z.infer<typeof createSessionSchema>;
+
+export const availableSessionsQuerySchema = z.object({
+  dateTimestamp: z
+    .string({ error: 'dateTimestamp is required (epoch milliseconds)' })
+    .regex(/^\d+$/, 'dateTimestamp must be epoch milliseconds')
+    .transform(Number),
+});
