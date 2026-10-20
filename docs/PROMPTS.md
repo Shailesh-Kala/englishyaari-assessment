@@ -337,3 +337,12 @@ Start with Phase 0 now.
 > I have installed Docker Desktop and it's open you can run the command now and test
 
 **Response:** Stopped Homebrew MongoDB 4.4 (owner approved) to free port 27017. `docker compose up -d --wait` → healthy in ~90 s (first image pull), `rs0` PRIMARY on MongoDB 8.2.12. With `.env` only: `npm run seed`, `npm start`, 32 API calls all as expected, Postman 19 requests / 41 assertions, and race checks on the real DB (5 overlapping creates → 1×201; 5 users booking one session → 1×200). Indexes present in the container. Added a first-run note to the README.
+
+---
+
+## 28. API examples + Postman descriptions
+
+**Prompt:**
+> Add the example bodies and Postman descriptions
+
+**Response:** Generated an "API examples" README section from real responses captured in the Docker run (request as `curl`, success body, one representative error per endpoint, collapsible) and ran every README `curl` verbatim against Docker. Added descriptions to all 19 Postman requests and 3 folders (rules, status codes, what each script does) plus the error shape in the collection description; newman still 19/41 green.
