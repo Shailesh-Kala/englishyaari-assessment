@@ -196,3 +196,14 @@ Start with Phase 0 now.
 > next
 
 **Response:** TDD: tests for case-insensitive unique email, the three session indexes, and an idempotent seed; then User/Teacher/Session models, `seedTeachers()` (upsert by email) and `npm run seed`. Smoke-ran the seed twice against a real replica set — same 3 ids. Logged D-022 (no `__v` on users/sessions).
+
+---
+
+## 13. Phase 3 — Task 6 follow-up (lock field, startup indexes)
+
+**Prompt:**
+> please fix these first: *(quoted the three "worth discussing" notes from Task 6: `__v`, test-helper index sync, seed data)*
+
+**Clarified via questions:** explicit lock field on Teacher; also create indexes on startup; keep seed as teachers only.
+
+**Response:** TDD: test then refactor replacing the teacher `__v` lock with `sessionLockVersion` (no `__v` on any model). `server.ts` now awaits `createIndexes()` before listening — verified on a fresh DB. Logged D-023, D-024; synced ARCHITECTURE.

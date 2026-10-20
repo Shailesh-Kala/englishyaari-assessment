@@ -166,9 +166,25 @@ Format: **What** · **Alternatives** · **Why** · **Trade-off**
 - **Trade-off:** Requires Docker Desktop installed and running. Tests don't need it (in-memory replica set).
 - **Status:** Approved by owner.
 
-## D-022 — No version key on users and sessions
+## D-022 — No version key on users and sessions *(teacher part superseded by D-023)*
 
 - **What:** `versionKey: false` on User and Session; Teacher keeps the default `__v`.
 - **Alternatives:** Keep `__v` everywhere and strip it in `toJSON` and in every pipeline `$project`.
 - **Why:** Nothing reads `__v` on users or sessions (concurrency there uses conditional updates, D-018), so dropping it removes a hide-it step from every response. Teacher's `__v` is the write target that serialises session creates (D-008).
 - **Trade-off:** No Mongoose array-versioning on users/sessions — they have no arrays.
+
+## D-023 — Explicit `sessionLockVersion` on Teacher instead of `__v` *(supersedes the teacher part of D-022)*
+
+- **What:** Teacher gets `sessionLockVersion: Number` (default `0`) and `versionKey: false`, like the other models. The session-create transaction does `$inc: { sessionLockVersion: 1 }` on the teacher.
+- **Alternatives:** Reuse Mongoose's `__v` (D-022); bump the teacher's `updatedAt`.
+- **Why:** Owner's choice — a named field makes the overlap lock obvious to anyone reading the schema, instead of hiding it in Mongoose's internal version key. No model has `__v` now.
+- **Trade-off:** One field that isn't in the PDF's Teacher schema; it's internal and never exposed by the API.
+- **Status:** Approved by owner.
+
+## D-024 — Create indexes at startup before listening
+
+- **What:** `server.ts` awaits `createIndexes()` on User, Teacher and Session after connecting and before `listen()`.
+- **Alternatives:** Rely on Mongoose `autoIndex` (builds in the background, so the first requests could arrive before the unique email index exists); `syncIndexes()` (also drops indexes not in the schema).
+- **Why:** Owner's choice. Guarantees uniqueness from the very first request; `createIndexes` only adds, so it's safe on a shared database.
+- **Trade-off:** Slightly slower startup on a large existing collection while indexes build.
+- **Status:** Approved by owner.

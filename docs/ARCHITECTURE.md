@@ -53,7 +53,7 @@ sequenceDiagram
     Ctl->>Svc: create(input)
     Svc->>Rep: createIfNoOverlap(input)
     Rep->>DB: startTransaction
-    Rep->>DB: teachers.updateOne({_id}, {$inc: {__v: 1}})
+    Rep->>DB: teachers.updateOne({_id}, {$inc: {sessionLockVersion: 1}})
     Note over Rep,DB: matched 0 → TEACHER_NOT_FOUND<br/>this write also "locks" the teacher:<br/>a concurrent create hits WriteConflict and retries
     Rep->>DB: sessions.findOne(overlap filter)
     Note over Rep,DB: found → SESSION_OVERLAP
@@ -84,6 +84,7 @@ erDiagram
         string email
         string specialization
         number experience "years, >= 0"
+        number sessionLockVersion "internal overlap lock"
         Date createdAt
         Date updatedAt
     }
@@ -100,7 +101,7 @@ erDiagram
     }
 ```
 
-All three use Mongoose `timestamps: true`. Users and sessions have no `__v` (`versionKey: false`), so nothing needs hiding from responses; teachers keep `__v` as the overlap lock (D-008, D-022).
+All three use Mongoose `timestamps: true` and `versionKey: false` — no `__v` anywhere, so nothing needs hiding from responses. Teachers carry an explicit `sessionLockVersion` counter, the overlap lock (D-008, D-023); it's internal and never returned by the API.
 
 **Indexes**
 
@@ -111,7 +112,7 @@ All three use Mongoose `timestamps: true`. Users and sessions have no `__v` (`ve
 | sessions | `{ teacherId: 1, startTime: 1 }` | F2 overlap lookup for one teacher |
 | sessions | `{ userId: 1, status: 1 }` | F6 — one user's booked/completed sessions |
 
-Indexes are declared on the schemas and built by Mongoose on startup (`autoIndex`). No migration tool (D-001).
+Indexes are declared on the schemas. `server.ts` awaits `createIndexes()` for every model before it starts listening, so the unique email index is guaranteed before the first request; it only adds missing indexes and never drops any (D-024). No migration tool (D-001).
 
 ## 3. API endpoints
 
@@ -173,7 +174,7 @@ F3 / F6 items add `"teacher": { "_id", "fullName", "specialization" }`.
   { $lookup: { from: 'teachers', localField: 'teacherId', foreignField: '_id', as: 'teacher',
                pipeline: [{ $project: { fullName: 1, specialization: 1 } }] } },
   { $unwind: '$teacher' },
-  { $project: { __v: 0 } }
+  { $project: { teacherId: 0 } }
 ]
 ```
 
@@ -186,7 +187,7 @@ Computing the range in the app (not `$dateToString` with a timezone inside the p
   { $match: { userId, status: { $in: ['BOOKED', 'COMPLETED'] } } },
   { $lookup: { /* same teacher lookup */ } },
   { $unwind: '$teacher' },
-  { $project: { __v: 0 } },
+  { $project: { teacherId: 0 } },
   { $facet: {
       upcoming:  [{ $match: { status: 'BOOKED' } },    { $sort: { startTime: 1 } }],
       completed: [{ $match: { status: 'COMPLETED' } }, { $sort: { completedAt: -1 } }]
@@ -267,7 +268,7 @@ One round trip returns both lists (D-009: `upcoming` = every `BOOKED`).
 
 | Decision | Trade-off |
 |---|---|
-| **No teacher overlap, even under concurrency** (D-008): the overlap check and insert run in a transaction that first writes to the teacher doc (`$inc __v`). Two concurrent creates for one teacher conflict on that doc; Mongoose's `connection.transaction()` retries the loser, which then sees the overlap. | Needs a replica set (docker-compose provides one). Creates for the same teacher are serialised. |
+| **No teacher overlap, even under concurrency** (D-008): the overlap check and insert run in a transaction that first writes to the teacher doc (`$inc sessionLockVersion`). Two concurrent creates for one teacher conflict on that doc; Mongoose's `connection.transaction()` retries the loser, which then sees the overlap. | Needs a replica set (docker-compose provides one). Creates for the same teacher are serialised. |
 | **Booking is one atomic conditional update** — `findOneAndUpdate({ _id, status: 'AVAILABLE', startTime: { $gt: now } }, { status: 'BOOKED', userId })`. Two users racing for a session: exactly one gets it, the other gets `409`. No transaction needed (one document). | The service reads the session first to return a precise error (`404` / `409` reason); the atomic update is what actually guarantees correctness. |
 | **Completing is the same pattern** — `{ _id, status: 'BOOKED' }` → `COMPLETED`, `completedAt = now`. | — |
 | **Email uniqueness enforced by the unique index**; duplicate-key error `E11000` is mapped to `409`. | Relies on the index existing — tests assert it. |
