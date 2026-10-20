@@ -173,8 +173,7 @@ F3 / F6 items add `"teacher": { "_id", "fullName", "specialization" }`.
   { $sort: { startTime: 1 } },
   { $lookup: { from: 'teachers', localField: 'teacherId', foreignField: '_id', as: 'teacher',
                pipeline: [{ $project: { fullName: 1, specialization: 1 } }] } },
-  { $unwind: '$teacher' },
-  { $project: { teacherId: 0 } }
+  { $unwind: '$teacher' }
 ]
 ```
 
@@ -187,7 +186,6 @@ Computing the range in the app (not `$dateToString` with a timezone inside the p
   { $match: { userId, status: { $in: ['BOOKED', 'COMPLETED'] } } },
   { $lookup: { /* same teacher lookup */ } },
   { $unwind: '$teacher' },
-  { $project: { teacherId: 0 } },
   { $facet: {
       upcoming:  [{ $match: { status: 'BOOKED' } },    { $sort: { startTime: 1 } }],
       completed: [{ $match: { status: 'COMPLETED' } }, { $sort: { completedAt: -1 } }]
