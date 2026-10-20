@@ -281,3 +281,12 @@ Start with Phase 0 now.
 > next
 
 **Response:** TDD: unit tests (completed with `completedAt = now`, 404, AVAILABLE/COMPLETED → 409, lost race) and integration tests (200, 409s, 404, 400, 5 simultaneous completes). Then `completeIfBooked` conditional update, service `complete`, `PATCH` route. Mutation check: dropping the `status: BOOKED` filter fails the race test 3/3; restored 10/10.
+
+---
+
+## 22. Phase 3 — Task 14 (F6 — User sessions)
+
+**Prompt:**
+> next
+
+**Response:** TDD: unit tests via fakes (split + 404) and integration tests (ordering of both lists incl. a started BOOKED session, exclusion of AVAILABLE/other users, empty lists, 404, 400). Then `findForUser` aggregation (`$match` → teacher `$lookup` → `$facet`), service `listForUser`, route; moved `idParamsSchema` to `validation.ts`. `explain` confirms index scan.

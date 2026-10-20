@@ -81,10 +81,12 @@ Each task is 1–3 commits: `test:` (failing) → `feat:` (pass) → `refactor:`
   - int: invalid id → `400`; unknown → `404`
   - int: **concurrency** — five simultaneous completes → exactly one `200` (mutation-checked)
 
-- [ ] **14. F6 — User sessions** `GET /users/:id/sessions` (aggregation)
+- [x] **14. F6 — User sessions** `GET /users/:id/sessions` (aggregation)
   - int: `{ upcoming, completed }`; upcoming = all `BOOKED` (incl. started) sorted by `startTime` asc; completed sorted by `completedAt` desc; both with `teacher`
   - int: other users' sessions and `AVAILABLE` sessions excluded
+  - unit (fakes): booked → upcoming, completed → completed, teacher attached; unknown user → `404`
   - int: unknown user → `404`; invalid id → `400`; user with no sessions → empty lists
+  - verified with `explain`: `IXSCAN` on `userId_1_status_1`
 
 ## Delivery
 
