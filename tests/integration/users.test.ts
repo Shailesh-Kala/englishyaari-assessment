@@ -58,6 +58,34 @@ describe('POST /users', () => {
     expect(res.body.error.details).toEqual([{ path: field, message: expect.any(String) }]);
   });
 
+  it.each([
+    ['9876543210', '+919876543210'],
+    ['+91 98765 43210', '+919876543210'],
+    ['91-98765-43210', '+919876543210'],
+    ['09876543210', '+919876543210'],
+  ])('accepts Indian mobile %s and stores it as %s', async (phone, stored) => {
+    const res = await request(app)
+      .post('/users')
+      .send({ ...validUser, phone });
+
+    expect(res.status).toBe(201);
+    expect(res.body.phone).toBe(stored);
+  });
+
+  it.each([
+    ['a number starting with 5', '5876543210'],
+    ['an 8-digit number', '98765432'],
+    ['a 12-digit number', '987654321012'],
+    ['a US number', '+14155552671'],
+  ])('rejects %s as phone', async (_reason, phone) => {
+    const res = await request(app)
+      .post('/users')
+      .send({ ...validUser, phone });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.details).toEqual([{ path: 'phone', message: expect.any(String) }]);
+  });
+
   it('returns 409 EMAIL_ALREADY_EXISTS for a duplicate email in a different case', async () => {
     await request(app).post('/users').send(validUser);
 
