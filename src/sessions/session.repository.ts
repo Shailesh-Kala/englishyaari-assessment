@@ -11,6 +11,16 @@ export type SessionWithTeacher = SessionRecord & { teacher: TeacherSummary };
 export type SessionRepository = {
   /** Returns null when the teacher already has a session overlapping [startTime, endTime). */
   createIfNoOverlap(input: NewSession): Promise<SessionRecord | null>;
+  findById(id: string): Promise<SessionRecord | null>;
+  /**
+   * Atomically books the session only if it is still AVAILABLE and starts after `now`.
+   * Returns null if another request got there first (or the rules no longer hold).
+   */
+  bookIfAvailable(booking: {
+    sessionId: string;
+    userId: string;
+    now: Date;
+  }): Promise<SessionRecord | null>;
   /** AVAILABLE sessions starting in [dayStart, dayEnd) and strictly after `now`, by startTime. */
   findAvailable(range: { dayStart: Date; dayEnd: Date; now: Date }): Promise<SessionWithTeacher[]>;
 };
@@ -49,6 +59,18 @@ export const sessionRepository: SessionRepository = {
       created = doc!.toObject();
     });
     return created;
+  },
+
+  async findById(id) {
+    return Session.findById(id).lean<SessionRecord>();
+  },
+
+  async bookIfAvailable({ sessionId, userId, now }) {
+    return Session.findOneAndUpdate(
+      { _id: sessionId, status: SessionStatus.AVAILABLE, startTime: { $gt: now } },
+      { $set: { status: SessionStatus.BOOKED, userId } },
+      { returnDocument: 'after' },
+    ).lean<SessionRecord>();
   },
 
   async findAvailable({ dayStart, dayEnd, now }) {

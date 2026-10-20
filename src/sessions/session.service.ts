@@ -1,16 +1,23 @@
 import { AppError } from '../errors.js';
 import type { TeacherRepository } from '../teachers/teacher.repository.js';
+import type { UserRepository } from '../users/user.repository.js';
 import { istDayRange } from './ist-day.js';
+import { SessionStatus } from './session.model.js';
 import type { SessionRepository } from './session.repository.js';
 import type { CreateSessionInput } from './session.schemas.js';
 
 type Deps = {
   sessionRepo: SessionRepository;
   teacherRepo: TeacherRepository;
+  userRepo: Pick<UserRepository, 'exists'>;
   clock: () => Date;
 };
 
-export function createSessionService({ sessionRepo, teacherRepo, clock }: Deps) {
+function sessionNotAvailable() {
+  return new AppError(409, 'SESSION_NOT_AVAILABLE', 'Session is not available for booking');
+}
+
+export function createSessionService({ sessionRepo, teacherRepo, userRepo, clock }: Deps) {
   return {
     async create(input: CreateSessionInput) {
       if (!(await teacherRepo.exists(input.teacherId))) {
@@ -25,6 +32,26 @@ export function createSessionService({ sessionRepo, teacherRepo, clock }: Deps) 
         );
       }
       return session;
+    },
+
+    async book(sessionId: string, userId: string) {
+      if (!(await userRepo.exists(userId))) {
+        throw new AppError(404, 'USER_NOT_FOUND', 'User not found');
+      }
+      const session = await sessionRepo.findById(sessionId);
+      if (!session) throw new AppError(404, 'SESSION_NOT_FOUND', 'Session not found');
+      if (session.status !== SessionStatus.AVAILABLE) throw sessionNotAvailable();
+
+      const now = clock();
+      if (session.startTime <= now) {
+        throw new AppError(409, 'SESSION_ALREADY_STARTED', 'Session has already started');
+      }
+
+      // The checks above give precise errors; this conditional update is what guarantees
+      // a session is booked once, even when requests race (D-018).
+      const booked = await sessionRepo.bookIfAvailable({ sessionId, userId, now });
+      if (!booked) throw sessionNotAvailable();
+      return booked;
     },
 
     async listAvailable(dateTimestamp: number) {

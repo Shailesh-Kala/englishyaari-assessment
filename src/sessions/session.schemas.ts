@@ -16,6 +16,10 @@ export const createSessionSchema = z
 
 export type CreateSessionInput = z.infer<typeof createSessionSchema>;
 
+export const sessionIdParamsSchema = z.object({ id: objectIdSchema });
+
+export const bookSessionSchema = z.object({ userId: objectIdSchema });
+
 export const availableSessionsQuerySchema = z.object({
   dateTimestamp: z
     .string({ error: 'dateTimestamp is required (epoch milliseconds)' })

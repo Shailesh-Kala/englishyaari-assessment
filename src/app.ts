@@ -44,6 +44,7 @@ export function createApp({ logger, corsOrigins, rateLimit: limits, clock }: App
       createSessionService({
         sessionRepo: sessionRepository,
         teacherRepo: teacherRepository,
+        userRepo: userRepository,
         clock,
       }),
     ),
