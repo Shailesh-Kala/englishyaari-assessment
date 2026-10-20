@@ -69,6 +69,13 @@ export function createFakeSessionRepository(teachers: TeacherSummary[] = []): Se
       session.userId = new Types.ObjectId(userId);
       return session;
     },
+    async completeIfBooked({ sessionId, now }) {
+      const session = sessions.find((s) => String(s._id) === sessionId);
+      if (!session || session.status !== SessionStatus.BOOKED) return null;
+      session.status = SessionStatus.COMPLETED;
+      session.completedAt = now;
+      return session;
+    },
     all: () => sessions,
     seed,
   };
