@@ -17,6 +17,17 @@ export function createFakeSessionRepository(teachers: TeacherSummary[] = []): Se
 } {
   const sessions: SessionRecord[] = [];
 
+  // Like $lookup + $unwind: attach the teacher, drop sessions whose teacher is unknown.
+  const withTeacher = (list: SessionRecord[]) =>
+    list.flatMap((s) => {
+      const teacher = teachers.find((t) => t._id.equals(s.teacherId));
+      return teacher ? [{ ...s, teacher }] : [];
+    });
+  const byTime =
+    (pick: (s: SessionRecord) => Date | null | undefined, direction: 1 | -1) =>
+    (a: SessionRecord, b: SessionRecord) =>
+      direction * ((pick(a)?.getTime() ?? 0) - (pick(b)?.getTime() ?? 0));
+
   function seed(overrides: Partial<SessionRecord>) {
     const session: SessionRecord = {
       _id: new Types.ObjectId(String(sessions.length + 1).padStart(24, '0')),
@@ -43,19 +54,30 @@ export function createFakeSessionRepository(teachers: TeacherSummary[] = []): Se
       return seed({ teacherId: new Types.ObjectId(teacherId), startTime, endTime });
     },
     async findAvailable({ dayStart, dayEnd, now }) {
-      return sessions
-        .filter(
-          (s) =>
-            s.status === SessionStatus.AVAILABLE &&
-            s.startTime >= dayStart &&
-            s.startTime < dayEnd &&
-            s.startTime > now,
-        )
-        .sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
-        .flatMap((s) => {
-          const teacher = teachers.find((t) => t._id.equals(s.teacherId));
-          return teacher ? [{ ...s, teacher }] : []; // like $unwind dropping unmatched rows
-        });
+      return withTeacher(
+        sessions
+          .filter(
+            (s) =>
+              s.status === SessionStatus.AVAILABLE &&
+              s.startTime >= dayStart &&
+              s.startTime < dayEnd &&
+              s.startTime > now,
+          )
+          .sort(byTime((s) => s.startTime, 1)),
+      );
+    },
+    async findForUser(userId) {
+      const mine = sessions.filter((s) => String(s.userId) === userId);
+      return {
+        upcoming: withTeacher(
+          mine.filter((s) => s.status === SessionStatus.BOOKED).sort(byTime((s) => s.startTime, 1)),
+        ),
+        completed: withTeacher(
+          mine
+            .filter((s) => s.status === SessionStatus.COMPLETED)
+            .sort(byTime((s) => s.completedAt, -1)),
+        ),
+      };
     },
     async findById(id) {
       return sessions.find((s) => String(s._id) === id) ?? null;
