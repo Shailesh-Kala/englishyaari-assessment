@@ -37,6 +37,7 @@ Lifecycle: `AVAILABLE → BOOKED → COMPLETED`. No other transitions.
 - Body: `teacherId`, `startTime`, `endTime`.
 - Teacher must exist; `endTime` must be after `startTime`.
 - **No overlap:** the new session must not overlap any existing session of the same teacher (any status). Overlap = `existing.startTime < new.endTime AND existing.endTime > new.startTime`. Back-to-back sessions (one ends exactly when the next starts) are allowed.
+- Overlap is prevented even under concurrent requests: the check and insert run in one transaction (D-006, D-008).
 - Created with `status = AVAILABLE`, `userId = null`, `completedAt = null`.
 - ✅ `201` · ❌ `400` invalid body / `endTime <= startTime` · ❌ `404` teacher not found · ❌ `409` overlaps an existing session.
 
@@ -98,7 +99,7 @@ Lifecycle: `AVAILABLE → BOOKED → COMPLETED`. No other transitions.
 1. **`dateTimestamp` is Unix epoch milliseconds** (what `Date.now()` returns). Any instant within the day works; the API resolves it to that day. *(Confirmed — D-004.)*
 2. **Day boundaries are IST** (`Asia/Kolkata`, UTC+05:30, no DST): `00:00:00.000 IST` → `23:59:59.999 IST`. A session belongs to the day its `startTime` falls on. *(Confirmed — D-004.)*
 3. **`startTime` / `endTime` are accepted as ISO-8601 strings or epoch ms** and stored as `Date` (UTC in MongoDB).
-4. **"Upcoming" means `BOOKED` with `startTime > now`.** *(Confirmed — D-005.)* Consequence: a `BOOKED` session that has started but not yet been marked complete appears in **neither** list until it is completed. "Now" comes from an injected clock so tests are deterministic.
+4. **"Upcoming" means `BOOKED` with `startTime > now`.** *(Confirmed — D-005.)* Consequence (accepted): a `BOOKED` session that has started but not yet been marked complete appears in **neither** list until it is completed. No extra status or list is added — the PDF defines only `AVAILABLE` / `BOOKED` / `COMPLETED`. "Now" comes from an injected clock so tests are deterministic.
 5. **F3 returns all `AVAILABLE` sessions for the date**, including ones whose start time has already passed today — the PDF says "all … for the supplied date".
 6. **Sessions may be created in the past**; the PDF only requires `endTime > startTime`.
 7. **Completion does not require `endTime` to have passed**; the PDF only requires status `BOOKED`.

@@ -109,3 +109,15 @@ Start with Phase 0 now.
 > 5. 404
 
 **Response:** Updated REQUIREMENTS.md (IST day boundaries, upcoming = booked & future, teacher overlap → `409`, resolved-questions table) and logged D-004 to D-007. Flagged two consequences for review: started-but-not-completed sessions drop out of both lists, and the overlap-check race.
+
+---
+
+## 4. Phase 1 review — status values and overlap
+
+**Prompt:**
+> 1. First of all can you read the requirement doc again the status seems to be AVAILABLE / BOOKED / COMPLETED
+> 2. Overlapping should not be allowed
+>
+> *(PDF text pasted for reference)*
+
+**Response:** Re-checked REQUIREMENTS.md against the PDF — statuses already match exactly. Dropped the `inProgress` suggestion and recorded the accepted gap (D-005). Made overlap impossible under concurrency via transaction + teacher-doc write on a replica set (D-006, D-008).
