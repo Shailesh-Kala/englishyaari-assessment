@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "EnglishYaari Session Booking API",
-    "description": "Run top to bottom (Collection Runner works).\n\n1. `docker compose up -d --wait`, `npm run seed`, `npm run dev`.\n2. Paste one teacher id from the seed output into the `teacherId` collection variable.\n\n`userId` and `sessionId` are set automatically by the test scripts. Each run uses a fresh email and a random future slot, so re-running doesn't collide with earlier data.",
+    "description": "Run top to bottom (Collection Runner works).\n\n1. `docker compose up -d --wait`, `npm run seed`, `npm run dev`.\n2. Paste one teacher id from the seed output into the `teacherId` collection variable.\n\n`userId` and `sessionId` are set automatically by the test scripts. Each run uses a fresh email and a random future slot, so re-running doesn't collide with earlier data.\n\nEvery error uses one shape: `{ error: { code, message, details?, requestId } }` — `details` only for `VALIDATION_ERROR`; `requestId` matches the `x-request-id` header.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -48,7 +48,8 @@
           "raw": "{{baseUrl}}/health",
           "host": ["{{baseUrl}}"],
           "path": ["health"]
-        }
+        },
+        "description": "Reports whether the API is up and connected to MongoDB.\n\n`200 { status: \"ok\", db: \"up\" }` · `503 { status: \"error\", db: \"down\" }` when MongoDB is unreachable."
       },
       "event": [
         {
@@ -89,7 +90,8 @@
                   "language": "json"
                 }
               }
-            }
+            },
+            "description": "Creates a user. All fields required.\n\n- `email` is stored lowercased and must be unique.\n- `phone`: 10 digits starting 6–9, optional `+91` / `91` / `0`; spaces and hyphens ignored; stored as `+91XXXXXXXXXX`.\n\nThe pre-request script generates a fresh email each run. Saves `userId`.\n\n`201` user · `400 VALIDATION_ERROR` · `409 EMAIL_ALREADY_EXISTS`"
           },
           "event": [
             {
@@ -136,7 +138,8 @@
                   "language": "json"
                 }
               }
-            }
+            },
+            "description": "Reuses the email just registered. The service checks first; the unique index catches simultaneous sign-ups.\n\nExpect `409 EMAIL_ALREADY_EXISTS`."
           },
           "event": [
             {
@@ -174,7 +177,8 @@
                   "language": "json"
                 }
               }
-            }
+            },
+            "description": "Every field is invalid, so `error.details` lists all three, one `{ path, message }` per field.\n\nExpect `400 VALIDATION_ERROR`."
           },
           "event": [
             {
@@ -190,7 +194,8 @@
             }
           ]
         }
-      ]
+      ],
+      "description": "Create users. Email is unique (case-insensitive); phone must be an Indian mobile number."
     },
     {
       "name": "Sessions",
@@ -218,7 +223,8 @@
                   "language": "json"
                 }
               }
-            }
+            },
+            "description": "Creates a one-hour `AVAILABLE` session for `teacherId`.\n\n- `startTime` / `endTime`: ISO-8601 or epoch ms; `endTime` must be after `startTime`.\n- The teacher can't have an overlapping session (any status). Back-to-back is fine.\n- `status`, `userId`, `completedAt` sent by the client are ignored.\n\nThe pre-request script picks a random future slot so re-runs don't overlap earlier data. Saves `sessionId`, `startTime`, `endTime`, `dateTimestamp`.\n\n`201` session · `400 VALIDATION_ERROR` · `404 TEACHER_NOT_FOUND` · `409 SESSION_OVERLAP`"
           },
           "event": [
             {
@@ -276,7 +282,8 @@
                   "language": "json"
                 }
               }
-            }
+            },
+            "description": "Same teacher, same slot as the session just created. Overlap is checked inside a transaction that locks the teacher, so it holds even for simultaneous requests.\n\nExpect `409 SESSION_OVERLAP`."
           },
           "event": [
             {
@@ -314,7 +321,8 @@
                   "language": "json"
                 }
               }
-            }
+            },
+            "description": "Swaps the times. Expect `400 VALIDATION_ERROR` with `details[0].path = \"endTime\"`."
           },
           "event": [
             {
@@ -352,7 +360,8 @@
                   "language": "json"
                 }
               }
-            }
+            },
+            "description": "Well-formed ObjectId that matches no teacher. Expect `404 TEACHER_NOT_FOUND`."
           },
           "event": [
             {
@@ -382,7 +391,8 @@
                   "value": "{{dateTimestamp}}"
                 }
               ]
-            }
+            },
+            "description": "Lists `AVAILABLE` sessions starting on the **IST** calendar day that contains `dateTimestamp` (epoch ms), excluding sessions that have already started. Sorted by `startTime`; each item includes `teacher { _id, fullName, specialization }`. Built with a MongoDB aggregation pipeline.\n\n`200` array (possibly empty) · `400 VALIDATION_ERROR`"
           },
           "event": [
             {
@@ -408,7 +418,8 @@
               "raw": "{{baseUrl}}/sessions/available",
               "host": ["{{baseUrl}}"],
               "path": ["sessions", "available"]
-            }
+            },
+            "description": "No query string. Expect `400 VALIDATION_ERROR` with `details[0].path = \"dateTimestamp\"`."
           },
           "event": [
             {
@@ -446,7 +457,8 @@
                   "language": "json"
                 }
               }
-            }
+            },
+            "description": "Books `sessionId` for `userId`. Rules, in order: user exists → session exists → status is `AVAILABLE` → session hasn't started. The final write is a single conditional update, so two users racing for one session can't both win.\n\n`200` session (`BOOKED`, `userId` set) · `400` · `404 USER_NOT_FOUND` / `SESSION_NOT_FOUND` · `409 SESSION_NOT_AVAILABLE` / `SESSION_ALREADY_STARTED`"
           },
           "event": [
             {
@@ -488,7 +500,8 @@
                   "language": "json"
                 }
               }
-            }
+            },
+            "description": "Books the same session again. Expect `409 SESSION_NOT_AVAILABLE`."
           },
           "event": [
             {
@@ -526,7 +539,8 @@
                   "language": "json"
                 }
               }
-            }
+            },
+            "description": "Well-formed ObjectId that matches no user. The user is checked first. Expect `404 USER_NOT_FOUND`."
           },
           "event": [
             {
@@ -550,7 +564,8 @@
               "raw": "{{baseUrl}}/users/{{userId}}/sessions",
               "host": ["{{baseUrl}}"],
               "path": ["users", "{{userId}}", "sessions"]
-            }
+            },
+            "description": "After booking, the session appears in `upcoming` (every `BOOKED` session, started or not, until it's completed) and `completed` is empty."
           },
           "event": [
             {
@@ -576,7 +591,8 @@
               "raw": "{{baseUrl}}/sessions/{{sessionId}}/complete",
               "host": ["{{baseUrl}}"],
               "path": ["sessions", "{{sessionId}}", "complete"]
-            }
+            },
+            "description": "Marks `sessionId` `COMPLETED` and sets `completedAt` to now. Only `BOOKED` sessions can be completed; the write is a single conditional update.\n\n`200` session · `400` · `404 SESSION_NOT_FOUND` · `409 SESSION_NOT_BOOKED`"
           },
           "event": [
             {
@@ -604,7 +620,8 @@
               "raw": "{{baseUrl}}/sessions/{{sessionId}}/complete",
               "host": ["{{baseUrl}}"],
               "path": ["sessions", "{{sessionId}}", "complete"]
-            }
+            },
+            "description": "Completes the same session again. Expect `409 SESSION_NOT_BOOKED`."
           },
           "event": [
             {
@@ -628,7 +645,8 @@
               "raw": "{{baseUrl}}/sessions/not-an-id/complete",
               "host": ["{{baseUrl}}"],
               "path": ["sessions", "not-an-id", "complete"]
-            }
+            },
+            "description": "`not-an-id` isn't a 24-char hex ObjectId. Expect `400 VALIDATION_ERROR` with `details[0].path = \"id\"`."
           },
           "event": [
             {
@@ -643,7 +661,8 @@
             }
           ]
         }
-      ]
+      ],
+      "description": "Teachers' sessions: create, list available for a day, book, complete. Needs the `teacherId` collection variable (from `npm run seed`)."
     },
     {
       "name": "User sessions",
@@ -657,7 +676,8 @@
               "raw": "{{baseUrl}}/users/{{userId}}/sessions",
               "host": ["{{baseUrl}}"],
               "path": ["users", "{{userId}}", "sessions"]
-            }
+            },
+            "description": "After completing, the session has moved from `upcoming` to `completed` (sorted by `completedAt`, newest first). Each item includes `teacher`.\n\n`200 { upcoming, completed }` · `400` · `404 USER_NOT_FOUND`"
           },
           "event": [
             {
@@ -686,7 +706,8 @@
               "raw": "{{baseUrl}}/users/0000000000000000000000ff/sessions",
               "host": ["{{baseUrl}}"],
               "path": ["users", "0000000000000000000000ff", "sessions"]
-            }
+            },
+            "description": "Well-formed ObjectId that matches no user. Expect `404 USER_NOT_FOUND`."
           },
           "event": [
             {
@@ -701,7 +722,8 @@
             }
           ]
         }
-      ]
+      ],
+      "description": "A user's history: `upcoming` and `completed`. Built with a MongoDB aggregation pipeline (`$facet`)."
     }
   ]
 }
