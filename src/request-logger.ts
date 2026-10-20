@@ -15,6 +15,11 @@ export function requestLogger(logger: Logger) {
       res.setHeader('x-request-id', id);
       return id;
     },
+    // Keep log lines small and never record headers (cookies, auth tokens).
+    serializers: {
+      req: (req) => ({ id: req.id, method: req.method, url: req.url }),
+      res: (res) => ({ statusCode: res.statusCode }),
+    },
     customLogLevel: (_req, res, err) => {
       if (err || res.statusCode >= 500) return 'error';
       return res.statusCode >= 400 ? 'warn' : 'info';
