@@ -7,12 +7,19 @@ on:
 jobs:
   check:
     runs-on: ubuntu-24.04
+    env:
+      # Outside node_modules so `npm ci` doesn't wipe the cached mongod binary.
+      MONGOMS_DOWNLOAD_DIR: /home/runner/.cache/mongodb-binaries
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:
           node-version: 24
           cache: npm
+      - uses: actions/cache@v4
+        with:
+          path: /home/runner/.cache/mongodb-binaries
+          key: mongodb-binaries-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - run: npm ci
       - run: npm run lint
       - run: npm run format:check
