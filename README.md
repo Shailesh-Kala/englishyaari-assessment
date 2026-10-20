@@ -8,7 +8,6 @@ REST API where teachers publish sessions, users book them, and completed session
 
 ## Links
 
-- Live URL: _TBD_
 - Demo video: _TBD_
 - Postman collection: _TBD_
 
@@ -34,9 +33,5 @@ _TBD_
 _TBD_
 
 ## Test
-
-_TBD_
-
-## Deploy
 
 _TBD_

@@ -58,4 +58,4 @@ Stack: Node.js, TypeScript, Express, MongoDB, Mongoose. Tests: Vitest + Supertes
 
 - `docs/PROMPTS.md`: after each user message, append the prompt, the phase, and a 1–2 line summary of the response. Commit with the related work.
 - `docs/DECISIONS.md`: every meaningful decision — what, alternatives, why, trade-off.
-- `README.md`: setup, run, seed, test, deploy, live URL, demo video, Postman collection, links to all docs.
+- `README.md`: setup, run, seed, test, demo video, Postman collection, links to all docs. Local run only — no deployment (D-003).
