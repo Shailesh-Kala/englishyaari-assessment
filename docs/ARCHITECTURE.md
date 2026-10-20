@@ -20,7 +20,7 @@ flowchart LR
         S -. throws .-> EH
     end
 
-    DB[("MongoDB 7<br/>single-node replica set<br/>users · teachers · sessions")]
+    DB[("MongoDB 8<br/>single-node replica set<br/>users · teachers · sessions")]
     Seed["npm run seed<br/>(teachers)"]
 
     Client -->|HTTP JSON| MW
@@ -202,10 +202,8 @@ One round trip returns both lists (D-009: `upcoming` = every `BOOKED`).
 .
 ├── src/
 │   ├── app.ts                  # createApp({ clock }) — middleware, routes, error handler
-│   ├── server.ts               # connect DB, listen, graceful shutdown
+│   ├── server.ts               # load config, create logger, connect DB, listen, graceful shutdown
 │   ├── config.ts               # env vars parsed + validated with zod
-│   ├── db.ts                   # mongoose connect / disconnect
-│   ├── logger.ts               # pino instance
 │   ├── errors.ts               # AppError, error handler, 404 handler
 │   ├── health.routes.ts
 │   ├── users/
@@ -231,7 +229,7 @@ One round trip returns both lists (D-009: `upcoming` = every `BOOKED`).
 │   ├── integration/            # supertest + in-memory Mongo replica set
 │   └── setup/                  # replica-set lifecycle, DB cleanup, fixtures
 ├── postman/englishyaari.postman_collection.json
-├── docker-compose.yml          # mongo:7 single-node replica set
+├── docker-compose.yml          # mongo:8.2 single-node replica set
 ├── .env.example
 ├── .github/workflows/ci.yml
 └── docs/

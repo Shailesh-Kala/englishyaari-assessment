@@ -12,7 +12,7 @@ Each task is 1–3 commits: `test:` (failing) → `feat:` (pass) → `refactor:`
 - [x] **2. CI** — GitHub Actions on every push: `npm ci` → lint → format check → typecheck → test on Ubuntu 24.04. mongod binary cache is added in Task 3 with the memory server.
   Commits: `ci: run lint, typecheck and tests on push`
 
-- [ ] **3. Config, logger, DB and health check** — zod-validated env (`config.ts`), `.env.example`, pino logger, Mongoose connect/disconnect, `docker-compose.yml` (single-node replica set), test harness (in-memory replica set), `GET /health`.
+- [x] **3. Config, logger, DB and health check** — zod-validated env (`config.ts`), `.env.example`, pino logger + Mongoose connect and graceful shutdown in `server.ts`, `docker-compose.yml` (single-node replica set), test harness (in-memory replica set), `GET /health`, mongod binary cache in CI.
   - int: `GET /health` → `200 { status: "ok", db: "up" }`
   - int: DB disconnected → `503 { status: "error", db: "down" }`
   - unit: invalid env (missing `MONGODB_URI`) throws at startup

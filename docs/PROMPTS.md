@@ -160,3 +160,12 @@ Start with Phase 0 now.
 > next
 
 **Response:** Added GitHub Actions workflow (lint, format check, typecheck, test on Node 24) — first run green. Pinned runner to `ubuntu-24.04` because `ubuntu-latest` is moving to Ubuntu 26, which mongod test binaries may not support yet.
+
+---
+
+## 9. Phase 3 — Task 3 (Config, logger, DB, health check)
+
+**Prompt:**
+> next
+
+**Response:** TDD: failing tests for env validation and `/health` (db up → 200, db down → 503), then `config.ts`, `health.routes.ts`, `app.ts`, `server.ts` (graceful shutdown). Added test harness on an in-memory replica set, build/dev/start scripts, docker-compose replica set, `.env.example`, CI binary cache. Smoke-tested the built server end to end.
