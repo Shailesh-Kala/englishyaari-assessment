@@ -9,7 +9,7 @@ const logger = pino({ level: config.LOG_LEVEL });
 await mongoose.connect(config.MONGODB_URI);
 logger.info('Connected to MongoDB');
 
-const server = createApp().listen(config.PORT, () => {
+const server = createApp({ logger }).listen(config.PORT, () => {
   logger.info({ port: config.PORT }, 'Server listening');
 });
 
