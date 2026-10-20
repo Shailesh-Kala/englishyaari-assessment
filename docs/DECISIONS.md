@@ -45,7 +45,7 @@ Format: **What** · **Alternatives** · **Why** · **Trade-off**
 - **What:** F6 `upcoming` lists sessions with `status = BOOKED` and `startTime > now`.
 - **Alternatives:** All `BOOKED` sessions regardless of time.
 - **Why:** Owner's choice — "upcoming" should mean in the future.
-- **Trade-off:** A booked session that has started but isn't marked complete appears in neither list until completed. `now` is injected for deterministic tests.
+- **Trade-off:** A booked session that has started but isn't marked complete appears in neither list until completed. Owner accepted this; no `IN_PROGRESS` status or third list, since the PDF defines only `AVAILABLE` / `BOOKED` / `COMPLETED`. `now` is injected for deterministic tests.
 - **Status:** Approved by owner.
 
 ## D-006 — Reject overlapping sessions for the same teacher
@@ -53,7 +53,7 @@ Format: **What** · **Alternatives** · **Why** · **Trade-off**
 - **What:** `POST /sessions` returns `409` if the new slot overlaps any existing session of that teacher (any status). Back-to-back slots are allowed.
 - **Alternatives:** No overlap check (PDF is silent); check only `AVAILABLE`/`BOOKED`.
 - **Why:** Owner's choice — a teacher can't be in two places at once. Completed sessions count too, since they also occupied the teacher's time.
-- **Trade-off:** Check-then-insert has a race (two concurrent overlapping creates). How we close it is decided in Phase 2.
+- **Trade-off:** Check-then-insert alone has a race (two concurrent overlapping creates). Owner requires overlap to be impossible, so the check + insert run in a transaction (D-008).
 - **Status:** Approved by owner.
 
 ## D-007 — `404` for missing referenced records
@@ -62,4 +62,12 @@ Format: **What** · **Alternatives** · **Why** · **Trade-off**
 - **Alternatives:** `422 Unprocessable Entity` for references inside the body.
 - **Why:** Owner's choice; one consistent "not found" status across the API.
 - **Trade-off:** Less precise than `422` for body references; the error `code` (`TEACHER_NOT_FOUND`, `USER_NOT_FOUND`) disambiguates.
+- **Status:** Approved by owner.
+
+## D-008 — Transaction + teacher-doc write to make overlap impossible
+
+- **What:** `POST /sessions` runs "find overlapping session → insert" inside a MongoDB transaction that also writes to the teacher document. Two concurrent creates for the same teacher then conflict on that document; MongoDB aborts one, and the retry sees the overlap and returns `409`.
+- **Alternatives:** Accept the race and document it; a unique index (can't express time-range overlap); an app-level mutex (breaks with more than one process).
+- **Why:** Owner requires overlap to never happen. A plain transaction isn't enough: two inserts of different documents don't conflict, so a shared write is needed to serialise them.
+- **Trade-off:** Transactions require MongoDB in replica-set mode, even locally. Mitigated with a `docker-compose.yml` that starts a single-node replica set, and an in-memory replica set for tests. Creates for the same teacher are serialised, which is fine at this scale.
 - **Status:** Approved by owner.
